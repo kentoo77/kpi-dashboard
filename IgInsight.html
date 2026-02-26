@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IG Insight Analyzer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+      background: #f4f5f7;
+      color: #1a1a1a;
+      padding: 16px;
+      padding-bottom: 40px;
+      min-height: 100vh;
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; color: #0f172a; }
+    h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: #334155; }
+
+    .steps { display: flex; gap: 4px; margin-bottom: 20px; }
+    .steps .step {
+      flex: 1; height: 4px; border-radius: 2px; background: #e2e8f0;
+      transition: background 0.3s;
+    }
+    .steps .step.active { background: #3b82f6; }
+    .steps .step.done { background: #22c55e; }
+
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 5px; }
+    input[type="text"], input[type="date"], input[type="url"], input[type="number"], select {
+      width: 100%; padding: 10px 12px; font-size: 1rem;
+      border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .upload-area {
+      border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px 16px;
+      text-align: center; background: #f8fafc; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-area:active { border-color: #3b82f6; background: #eff6ff; }
+    .upload-area .icon { font-size: 2rem; margin-bottom: 8px; }
+    .upload-area .text { font-size: 0.9rem; color: #64748b; }
+    .upload-area .sub { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+
+    .preview-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .preview-item {
+      position: relative; width: 72px; height: 72px; border-radius: 8px; overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-item .remove {
+      position: absolute; top: 2px; right: 2px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(0,0,0,0.6); color: #fff; border: none;
+      font-size: 12px; line-height: 20px; text-align: center; cursor: pointer;
+    }
+
+    .btn {
+      width: 100%; padding: 14px; font-size: 1rem; font-weight: 600;
+      color: #fff; border: none; border-radius: 10px; cursor: pointer;
+      margin-top: 16px; transition: opacity 0.2s;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #3b82f6; }
+    .btn-primary:active:not(:disabled) { background: #2563eb; }
+    .btn-success { background: #22c55e; }
+    .btn-success:active:not(:disabled) { background: #16a34a; }
+    .btn-outline {
+      background: #fff; color: #3b82f6; border: 1px solid #3b82f6; margin-top: 10px;
+    }
+    .btn-outline:active { background: #eff6ff; }
+
+    .msg { padding: 12px; border-radius: 8px; margin-bottom: 14px; font-size: 0.9rem; }
+    .msg.success { background: #dcfce7; color: #166534; }
+    .msg.error { background: #fee2e2; color: #991b1b; }
+
+    .loading { text-align: center; padding: 40px 16px; }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid #e2e8f0;
+      border-top-color: #3b82f6; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading .text { font-size: 0.9rem; color: #64748b; }
+
+    .result-card {
+      background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 14px;
+      border: 1px solid #e2e8f0;
+    }
+    .result-card h3 {
+      font-size: 0.85rem; font-weight: 600; color: #3b82f6;
+      margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #f1f5f9;
+    }
+    .field-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 0; border-bottom: 1px solid #f8fafc;
+    }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { font-size: 0.82rem; color: #475569; flex-shrink: 0; }
+    .field-input {
+      width: 100px; padding: 6px 8px; font-size: 0.9rem; text-align: right;
+      border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc;
+    }
+    .field-unit { font-size: 0.75rem; color: #94a3b8; margin-left: 4px; width: 24px; }
+    .field-computed {
+      font-size: 0.75rem; color: #94a3b8; font-style: italic;
+    }
+
+    .done-screen { text-align: center; padding: 40px 0; }
+    .done-icon { font-size: 3rem; margin-bottom: 12px; }
+    .done-text { font-size: 1.1rem; font-weight: 600; color: #166534; margin-bottom: 8px; }
+
+    .history-table { width: 100%; font-size: 0.78rem; border-collapse: collapse; }
+    .history-table th {
+      text-align: left; padding: 8px 6px; background: #f1f5f9; color: #64748b;
+      font-weight: 600; white-space: nowrap;
+    }
+    .history-table td { padding: 8px 6px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+    .history-wrap { overflow-x: auto; margin-top: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+
+  <h1>IG Insight Analyzer</h1>
+
+  <div class="steps">
+    <div class="step active" id="step1bar"></div>
+    <div class="step" id="step2bar"></div>
+    <div class="step" id="step3bar"></div>
+  </div>
+
+  <!-- ========== STEP 1: アップロード ========== -->
+  <div class="section visible" id="sec-upload">
+    <div id="msg1"></div>
+
+    <div class="form-group">
+      <label>日付 *</label>
+      <input type="date" id="inp-date">
+    </div>
+    <div class="form-group">
+      <label>投稿タイトル</label>
+      <input type="text" id="inp-title" placeholder="例: ちょっと見せて【I】">
+    </div>
+    <div class="form-group">
+      <label>投稿URL</label>
+      <input type="url" id="inp-url" placeholder="https://www.instagram.com/reel/...">
+    </div>
+    <div class="form-group">
+      <label>ストーリーURL</label>
+      <input type="url" id="inp-story-url" placeholder="https://www.instagram.com/stories/...">
+    </div>
+    <div class="form-group">
+      <label>種類</label>
+      <select id="inp-type">
+        <option value="リール">リール</option>
+        <option value="投稿">投稿</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>インサイトのスクショ *</label>
+      <div class="upload-area" id="upload-area">
+        <div class="icon">+</div>
+        <div class="text">タップして画像を選択</div>
+        <div class="sub">何枚でもOK（概要・リーチ・年齢層等）</div>
+      </div>
+      <input type="file" id="file-input" accept="image/*" multiple style="display:none">
+      <div class="preview-grid" id="preview-grid"></div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-analyze" disabled>解析する</button>
+  </div>
+
+  <!-- ========== STEP 1.5: ローディング ========== -->
+  <div class="section" id="sec-loading">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="text">Gemini AI が解析中...</div>
+      <div class="sub" style="font-size:0.75rem;color:#94a3b8;margin-top:8px">3〜10秒ほどかかります</div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 2: 確認・修正 ========== -->
+  <div class="section" id="sec-review">
+    <div id="msg2"></div>
+    <h2>抽出結果を確認</h2>
+
+    <!-- 再生・リーチ -->
+    <div class="result-card">
+      <h3>再生・リーチ</h3>
+      <div class="field-row"><span class="field-label">再生数</span><input type="number" class="field-input" id="f-plays"><span class="field-unit"></span></div>
+      <div class="field-row"><span class="field-label">リーチ数</span><input type="number" class="field-input" id="f-reach"><span class="field-unit"></span></div>
+      <div class="field-row"><span class="field-label">視聴時間(総秒数)</span><input type="number" class="field-input" id="f-total_watch_time"><span class="field-unit">秒</span></div>
+      <div class="field-row"><span class="field-label">平均再生時間</span><input type="number" step="0.1" class="field-input" id="f-avg_watch_time"><span class="field-unit">秒</span></div>
+      <div class="field-row"><span class="field-label">動画の秒数</span><input type="number" step="0.1" class="field-input" id="f-video_duration"><span class="field-unit">秒</span></div>
+      <div class="field-row"><span class="field-label">3秒再生率</span><input type="number" step="0.1" class="field-input" id="f-three_sec_rate"><span class="field-unit">%</span></div>
+      <div class="field-row"><span class="field-label">3秒再生率通常</span><input type="number" step="0.1" class="field-input" id="f-three_sec_rate_normal"><span class="field-unit">%</span></div>
+    </div>
+
+    <!-- エンゲージメント -->
+    <div class="result-card">
+      <h3>エンゲージメント</h3>
+      <div class="field-row"><span class="field-label">いいね数</span><input type="number" class="field-input" id="f-likes"><span class="field-unit"></span></div>
+      <div class="field-row"><span class="field-label">いいね率</span><span class="field-computed" id="c-like-rate">自動計算</span></div>
+      <div class="field-row"><span class="field-label">保存数</span><input type="number" class="field-input" id="f-saves"><span class="field-unit"></span></div>
+      <div class="field-row"><span class="field-label">保存率</span><span class="field-computed" id="c-save-rate">自動計算</span></div>
+      <div class="field-row"><span class="field-label">コメント数</span><input type="number" class="field-input" id="f-comments"><span class="field-unit"></span></div>
+      <div class="field-row"><span class="field-label">コメント率</span><span class="field-computed" id="c-comment-rate">自動計算</span></div>
+      <div class="field-row"><span class="field-label">シェア数</span><input type="number" class="field-input" id="f-shares"><span class="field-unit"></span></div>
+      <div class="field-row"><span class="field-label">フォロー数</span><input type="number" class="field-input" id="f-follows"><span class="field-unit"></span></div>
+      <div class="field-row"><span class="field-label">フォロー率</span><span class="field-computed" id="c-follow-rate">自動計算</span></div>
+    </div>
+
+    <!-- 年齢層 -->
+    <div class="result-card">
+      <h3>年齢層</h3>
+      <div class="field-row"><span class="field-label">13-17</span><input type="number" step="0.1" class="field-input" id="f-age_13_17"><span class="field-unit">%</span></div>
+      <div class="field-row"><span class="field-label">18-24</span><input type="number" step="0.1" class="field-input" id="f-age_18_24"><span class="field-unit">%</span></div>
+      <div class="field-row"><span class="field-label">25-34</span><input type="number" step="0.1" class="field-input" id="f-age_25_34"><span class="field-unit">%</span></div>
+      <div class="field-row"><span class="field-label">35-44</span><input type="number" step="0.1" class="field-input" id="f-age_35_44"><span class="field-unit">%</span></div>
+      <div class="field-row"><span class="field-label">45-54</span><input type="number" step="0.1" class="field-input" id="f-age_45_54"><span class="field-unit">%</span></div>
+      <div class="field-row"><span class="field-label">55-64</span><input type="number" step="0.1" class="field-input" id="f-age_55_64"><span class="field-unit">%</span></div>
+      <div class="field-row"><span class="field-label">65-</span><input type="number" step="0.1" class="field-input" id="f-age_65_plus"><span class="field-unit">%</span></div>
+    </div>
+
+    <button class="btn btn-success" id="btn-save">保存する</button>
+    <button class="btn btn-outline" id="btn-back">戻って修正</button>
+  </div>
+
+  <!-- ========== STEP 3: 完了 ========== -->
+  <div class="section" id="sec-done">
+    <div class="done-screen">
+      <div class="done-icon">&#10003;</div>
+      <div class="done-text">保存完了！</div>
+      <p style="color:#64748b;font-size:0.9rem;margin-bottom:20px">スプレッドシート・JSON・Driveに保存しました</p>
+      <button class="btn btn-primary" id="btn-another">もう1件追加</button>
+      <button class="btn btn-outline" id="btn-history">履歴を見る</button>
+    </div>
+  </div>
+
+  <!-- ========== 履歴 ========== -->
+  <div class="section" id="sec-history">
+    <h2>保存履歴（最新20件）</h2>
+    <div id="history-content"></div>
+    <button class="btn btn-outline" id="btn-back-home" style="margin-top:16px">戻る</button>
+  </div>
+
+<script>
+(function() {
+  var selectedFiles = [];
+  var extractedData = null;
+
+  var secUpload = document.getElementById("sec-upload");
+  var secLoading = document.getElementById("sec-loading");
+  var secReview = document.getElementById("sec-review");
+  var secDone = document.getElementById("sec-done");
+  var secHistory = document.getElementById("sec-history");
+  var allSections = [secUpload, secLoading, secReview, secDone, secHistory];
+
+  var step1bar = document.getElementById("step1bar");
+  var step2bar = document.getElementById("step2bar");
+  var step3bar = document.getElementById("step3bar");
+
+  var dateInput = document.getElementById("inp-date");
+  var uploadArea = document.getElementById("upload-area");
+  var fileInput = document.getElementById("file-input");
+  var previewGrid = document.getElementById("preview-grid");
+  var btnAnalyze = document.getElementById("btn-analyze");
+  var btnSave = document.getElementById("btn-save");
+  var btnBack = document.getElementById("btn-back");
+  var btnAnother = document.getElementById("btn-another");
+  var btnHistory = document.getElementById("btn-history");
+  var btnBackHome = document.getElementById("btn-back-home");
+
+  // 初期化: 今日の日付
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  dateInput.value = todayStr();
+
+  // セクション切替
+  function showSection(sec, stepNum) {
+    allSections.forEach(function(s) { s.classList.remove("visible"); });
+    sec.classList.add("visible");
+    step1bar.className = "step" + (stepNum >= 1 ? (stepNum > 1 ? " done" : " active") : "");
+    step2bar.className = "step" + (stepNum >= 2 ? (stepNum > 2 ? " done" : " active") : "");
+    step3bar.className = "step" + (stepNum >= 3 ? " active" : "");
+    window.scrollTo(0, 0);
+  }
+
+  // ファイル選択
+  uploadArea.addEventListener("click", function() { fileInput.click(); });
+
+  fileInput.addEventListener("change", function(e) {
+    for (var i = 0; i < e.target.files.length; i++) {
+      selectedFiles.push(e.target.files[i]);
+    }
+    renderPreviews();
+    updateAnalyzeBtn();
+  });
+
+  function renderPreviews() {
+    previewGrid.innerHTML = "";
+    selectedFiles.forEach(function(file, idx) {
+      var div = document.createElement("div");
+      div.className = "preview-item";
+      var img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      div.appendChild(img);
+      var btn = document.createElement("button");
+      btn.className = "remove";
+      btn.textContent = "x";
+      btn.onclick = function() {
+        selectedFiles.splice(idx, 1);
+        renderPreviews();
+        updateAnalyzeBtn();
+      };
+      div.appendChild(btn);
+      previewGrid.appendChild(div);
+    });
+  }
+
+  function updateAnalyzeBtn() {
+    btnAnalyze.disabled = selectedFiles.length === 0;
+  }
+
+  // 率の自動計算
+  function updateRates() {
+    var reach = getNum("f-reach");
+    var likes = getNum("f-likes");
+    var saves = getNum("f-saves");
+    var comments = getNum("f-comments");
+    var follows = getNum("f-follows");
+
+    document.getElementById("c-like-rate").textContent = calcRate(likes, reach);
+    document.getElementById("c-save-rate").textContent = calcRate(saves, reach);
+    document.getElementById("c-comment-rate").textContent = calcRate(comments, reach);
+    document.getElementById("c-follow-rate").textContent = calcRate(follows, reach);
+  }
+
+  function calcRate(num, denom) {
+    if (num == null || denom == null || denom === 0) return "- %";
+    return (Math.round((num / denom) * 10000) / 100) + " %";
+  }
+
+  // 入力変更時に率を再計算
+  document.addEventListener("input", function(e) {
+    var id = e.target.id;
+    if (id === "f-reach" || id === "f-likes" || id === "f-saves" || id === "f-comments" || id === "f-follows") {
+      updateRates();
+    }
+  });
+
+  // ==========================================
+  // 解析
+  // ==========================================
+  btnAnalyze.addEventListener("click", function() {
+    if (selectedFiles.length === 0) return;
+    clearMsg("msg1");
+    showSection(secLoading, 1);
+
+    var pending = selectedFiles.length;
+    var imageDataArray = [];
+
+    selectedFiles.forEach(function(file, idx) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        imageDataArray[idx] = {
+          mimeType: file.type || "image/png",
+          base64: e.target.result.split(",")[1]
+        };
+        pending--;
+        if (pending === 0) sendToGemini(imageDataArray);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  function sendToGemini(imageDataArray) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.ok) {
+          extractedData = result.data;
+          populateReviewForm(extractedData);
+          showSection(secReview, 2);
+        } else {
+          showMsg("msg1", result.message, "error");
+          showSection(secUpload, 1);
+        }
+      })
+      .withFailureHandler(function(err) {
+        showMsg("msg1", "通信エラー: " + err.message, "error");
+        showSection(secUpload, 1);
+      })
+      .IGI_analyzeImages(imageDataArray);
+  }
+
+  // ==========================================
+  // 確認フォーム表示
+  // ==========================================
+  function populateReviewForm(data) {
+    setVal("f-plays", data.plays);
+    setVal("f-reach", data.reach);
+    setVal("f-total_watch_time", data.total_watch_time_sec);
+    setVal("f-avg_watch_time", data.avg_watch_time_sec);
+    setVal("f-video_duration", data.video_duration_sec);
+    setVal("f-three_sec_rate", data.three_sec_rate);
+    setVal("f-three_sec_rate_normal", null); // 手入力
+
+    setVal("f-likes", data.likes);
+    setVal("f-saves", data.saves);
+    setVal("f-comments", data.comments);
+    setVal("f-shares", data.shares);
+    setVal("f-follows", data.follows);
+
+    setVal("f-age_13_17", data.age_13_17);
+    setVal("f-age_18_24", data.age_18_24);
+    setVal("f-age_25_34", data.age_25_34);
+    setVal("f-age_35_44", data.age_35_44);
+    setVal("f-age_45_54", data.age_45_54);
+    setVal("f-age_55_64", data.age_55_64);
+    setVal("f-age_65_plus", data.age_65_plus);
+
+    updateRates();
+  }
+
+  // ==========================================
+  // フォームから値を収集
+  // ==========================================
+  function collectFormData() {
+    return {
+      plays: getNum("f-plays"),
+      reach: getNum("f-reach"),
+      total_watch_time_sec: getNum("f-total_watch_time"),
+      avg_watch_time_sec: getNum("f-avg_watch_time"),
+      video_duration_sec: getNum("f-video_duration"),
+      three_sec_rate: getNum("f-three_sec_rate"),
+      three_sec_rate_normal: getNum("f-three_sec_rate_normal"),
+      likes: getNum("f-likes"),
+      saves: getNum("f-saves"),
+      comments: getNum("f-comments"),
+      shares: getNum("f-shares"),
+      follows: getNum("f-follows"),
+      age_13_17: getNum("f-age_13_17"),
+      age_18_24: getNum("f-age_18_24"),
+      age_25_34: getNum("f-age_25_34"),
+      age_35_44: getNum("f-age_35_44"),
+      age_45_54: getNum("f-age_45_54"),
+      age_55_64: getNum("f-age_55_64"),
+      age_65_plus: getNum("f-age_65_plus")
+    };
+  }
+
+  // ==========================================
+  // 保存
+  // ==========================================
+  btnSave.addEventListener("click", function() {
+    clearMsg("msg2");
+    btnSave.disabled = true;
+    btnSave.textContent = "保存中...";
+
+    var formData = collectFormData();
+    var pending = selectedFiles.length;
+    var imageDataArray = [];
+
+    if (pending === 0) {
+      doSave(formData, []);
+      return;
+    }
+
+    selectedFiles.forEach(function(file, idx) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        imageDataArray[idx] = {
+          mimeType: file.type || "image/png",
+          base64: e.target.result.split(",")[1]
+        };
+        pending--;
+        if (pending === 0) doSave(formData, imageDataArray);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  function doSave(formData, imageDataArray) {
+    var params = {
+      title: document.getElementById("inp-title").value.trim(),
+      postUrl: document.getElementById("inp-url").value.trim(),
+      storyUrl: document.getElementById("inp-story-url").value.trim(),
+      postType: document.getElementById("inp-type").value,
+      date: dateInput.value,
+      data: formData,
+      images: imageDataArray
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        btnSave.disabled = false;
+        btnSave.textContent = "保存する";
+        if (result.ok) {
+          showSection(secDone, 3);
+        } else {
+          showMsg("msg2", result.message, "error");
+        }
+      })
+      .withFailureHandler(function(err) {
+        btnSave.disabled = false;
+        btnSave.textContent = "保存する";
+        showMsg("msg2", "通信エラー: " + err.message, "error");
+      })
+      .IGI_saveInsight(params);
+  }
+
+  // ==========================================
+  // ナビゲーション
+  // ==========================================
+  btnBack.addEventListener("click", function() { showSection(secUpload, 1); });
+
+  btnAnother.addEventListener("click", function() {
+    selectedFiles = [];
+    extractedData = null;
+    previewGrid.innerHTML = "";
+    fileInput.value = "";
+    document.getElementById("inp-title").value = "";
+    document.getElementById("inp-url").value = "";
+    document.getElementById("inp-story-url").value = "";
+    dateInput.value = todayStr();
+    updateAnalyzeBtn();
+    clearMsg("msg1");
+    clearMsg("msg2");
+    showSection(secUpload, 1);
+  });
+
+  btnHistory.addEventListener("click", function() { loadHistory(); });
+  btnBackHome.addEventListener("click", function() { showSection(secDone, 3); });
+
+  // ==========================================
+  // 履歴
+  // ==========================================
+  function loadHistory() {
+    var content = document.getElementById("history-content");
+    content.innerHTML = '<div class="loading"><div class="spinner"></div><div class="text">読み込み中...</div></div>';
+    showSection(secHistory, 3);
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.ok && result.data.length > 0) {
+          var html = '<div class="history-wrap"><table class="history-table">';
+          html += '<tr><th>日付</th><th>タイトル</th><th>再生</th><th>リーチ</th><th>いいね</th><th>保存</th><th>保存率</th></tr>';
+          result.data.forEach(function(p) {
+            html += '<tr>';
+            html += '<td>' + escHtml(fmtDate(p.date)) + '</td>';
+            html += '<td>' + escHtml(String(p.title || "").substring(0, 15)) + '</td>';
+            html += '<td>' + fmtNum(p.plays) + '</td>';
+            html += '<td>' + fmtNum(p.reach) + '</td>';
+            html += '<td>' + fmtNum(p.likes) + '</td>';
+            html += '<td>' + fmtNum(p.saves) + '</td>';
+            html += '<td>' + (p.save_rate ? p.save_rate + "%" : "-") + '</td>';
+            html += '</tr>';
+          });
+          html += '</table></div>';
+          content.innerHTML = html;
+        } else if (result.ok) {
+          content.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px">まだデータがありません</p>';
+        } else {
+          content.innerHTML = '<div class="msg error">' + escHtml(result.message) + '</div>';
+        }
+      })
+      .withFailureHandler(function(err) {
+        content.innerHTML = '<div class="msg error">読み込みエラー: ' + escHtml(err.message) + '</div>';
+      })
+      .IGI_getHistory();
+  }
+
+  // ==========================================
+  // ユーティリティ
+  // ==========================================
+  function setVal(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.value = (val != null) ? val : "";
+  }
+
+  function getNum(id) {
+    var el = document.getElementById(id);
+    if (!el || el.value === "") return null;
+    var n = parseFloat(el.value);
+    return isNaN(n) ? null : n;
+  }
+
+  function showMsg(id, text, type) {
+    var el = document.getElementById(id);
+    el.className = "msg " + type;
+    el.textContent = text;
+  }
+
+  function clearMsg(id) {
+    var el = document.getElementById(id);
+    el.className = "";
+    el.textContent = "";
+  }
+
+  function escHtml(s) {
+    var d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function fmtNum(n) {
+    if (n == null || n === "") return "-";
+    return Number(n).toLocaleString();
+  }
+
+  function fmtDate(d) {
+    if (!d) return "";
+    if (d instanceof Date) {
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    }
+    return String(d);
+  }
+
+})();
+</script>
+
+</body>
+</html>
