@@ -1,0 +1,2721 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KPI Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f4f5f7;
+        --surface: #ffffff;
+        --surface-alt: #f9fafb;
+        --border: #e5e7eb;
+        --border-light: #f0f1f3;
+        --ink: #0f172a;
+        --ink-secondary: #475569;
+        --ink-muted: #94a3b8;
+        --ink-faint: #cbd5e1;
+        --blue: #3b82f6;
+        --blue-soft: rgba(59, 130, 246, 0.08);
+        --blue-mid: rgba(59, 130, 246, 0.16);
+        --green: #10b981;
+        --amber: #f59e0b;
+        --red: #ef4444;
+        --red-soft: rgba(239, 68, 68, 0.06);
+        --dark: #0f172a;
+        --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 6px rgba(15, 23, 42, 0.05), 0 2px 4px rgba(15, 23, 42, 0.03);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --radius-xs: 6px;
+        --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        --sans: "DM Sans", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+        --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--sans);
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+      }
+
+      /* topbar */
+      .topbar {
+        background: var(--dark);
+        color: #fff;
+        padding: 20px 32px 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .topbar-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+      }
+      .topbar-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-bottom: 16px;
+      }
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .logo-mark {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--blue), #818cf8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        color: #fff;
+        flex-shrink: 0;
+      }
+      .topbar h1 {
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+      }
+      .topbar .sub {
+        font-size: 11px;
+        font-family: var(--mono);
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 680px;
+      }
+      .topbar-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .topbar-actions button {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-family: var(--sans);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s var(--ease);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .topbar-actions button:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+      .topbar-actions button svg {
+        width: 13px;
+        height: 13px;
+      }
+
+      /* tabs */
+      .tabs {
+        display: flex;
+        gap: 0;
+        margin-top: 4px;
+        overflow-x: auto;
+      }
+      .tab {
+        appearance: none;
+        border: none;
+        background: none;
+        color: rgba(255, 255, 255, 0.45);
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 10px 18px;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.2s var(--ease);
+        white-space: nowrap;
+      }
+      .tab:hover {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .tab.active {
+        color: #fff;
+      }
+      .tab.active::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 12px;
+        right: 12px;
+        height: 2px;
+        background: var(--blue);
+        border-radius: 2px 2px 0 0;
+      }
+      .tab .tab-count {
+        font-family: var(--mono);
+        font-size: 10px;
+        margin-left: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        vertical-align: 1px;
+      }
+      .tab.active .tab-count {
+        background: var(--blue-mid);
+        color: #93c5fd;
+      }
+
+      /* main */
+      .main {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px 32px 80px;
+      }
+
+      /* hero metrics */
+      .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+      .metric-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        box-shadow: var(--shadow-xs);
+        transition: box-shadow 0.2s var(--ease);
+        position: relative;
+        overflow: hidden;
+      }
+      .metric-card:hover {
+        box-shadow: var(--shadow-md);
+      }
+      .metric-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+      }
+      .metric-card.blue::before {
+        background: var(--blue);
+      }
+      .metric-card.green::before {
+        background: var(--green);
+      }
+      .metric-card.amber::before {
+        background: var(--amber);
+      }
+      .metric-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-muted);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .metric-value {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: var(--ink);
+      }
+      .metric-sub {
+        font-size: 11px;
+        font-family: var(--mono);
+        color: var(--ink-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .metric-sub .month-tag {
+        background: var(--surface-alt);
+        border: 1px solid var(--border-light);
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 10px;
+      }
+
+      /* sections */
+      .section {
+        display: none;
+      }
+      .section.active {
+        display: block;
+      }
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .section-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .badge {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        border: 1px solid var(--border);
+        padding: 4px 10px;
+        border-radius: 999px;
+        color: var(--ink-muted);
+        background: var(--surface);
+        white-space: nowrap;
+      }
+      .badge.accent {
+        border-color: var(--blue);
+        color: var(--blue);
+        background: var(--blue-soft);
+      }
+
+      /* tables */
+      .table-wrap {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+      }
+      .table-scroll {
+        max-height: 60vh;
+        overflow: auto;
+      }
+      .table-scroll::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      .table-scroll::-webkit-scrollbar-thumb {
+        background: var(--ink-faint);
+        border-radius: 3px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      thead th {
+        text-align: left;
+        font-family: var(--sans);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-muted);
+        letter-spacing: 0.03em;
+        padding: 11px 14px;
+        border-bottom: 2px solid var(--border);
+        background: var(--surface-alt);
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        white-space: nowrap;
+      }
+      tbody td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-light);
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--ink);
+        transition: background 0.15s;
+        white-space: nowrap;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:hover td {
+        background: var(--blue-soft);
+      }
+      tbody td:first-child {
+        font-weight: 600;
+      }
+
+      /* select */
+      select {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--ink);
+        padding: 8px 32px 8px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-family: var(--sans);
+        font-weight: 500;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-position: calc(100% - 10px) center;
+        background-repeat: no-repeat;
+        transition: all 0.2s var(--ease);
+        outline: none;
+      }
+      select:hover {
+        border-color: var(--blue);
+      }
+      select:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px var(--blue-soft);
+      }
+
+      /* errors & hints */
+      .error {
+        margin-top: 12px;
+        color: var(--red);
+        font-size: 12px;
+        font-family: var(--mono);
+        white-space: pre-wrap;
+        padding: 12px 16px;
+        background: var(--red-soft);
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(239, 68, 68, 0.12);
+      }
+      .hint {
+        margin-top: 14px;
+        color: var(--ink-muted);
+        font-size: 11px;
+        font-family: var(--mono);
+        line-height: 1.7;
+        padding: 10px 14px;
+        background: var(--surface-alt);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-light);
+      }
+
+      /* modal */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        z-index: 200;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal-box {
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+        max-width: 700px;
+        width: 100%;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .modal-header h3 {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .modal-close {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--ink-muted);
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+      .modal-close:hover {
+        background: var(--surface-alt);
+        color: var(--ink);
+      }
+      .modal-stats {
+        display: none;
+        gap: 8px;
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+      }
+      .modal-stats.show { display: flex; }
+      .modal-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: var(--surface-alt);
+        border-radius: 6px;
+        padding: 8px 14px;
+        min-width: 80px;
+      }
+      .modal-stat .stat-label {
+        font-size: 10px;
+        color: var(--ink-muted);
+        margin-bottom: 2px;
+      }
+      .modal-stat .stat-value {
+        font-size: 16px;
+        font-weight: 700;
+        font-family: var(--mono);
+      }
+      .modal-stat .stat-count {
+        font-size: 10px;
+        color: var(--ink-muted);
+        margin-top: 1px;
+      }
+      .modal-body {
+        overflow: auto;
+        padding: 0;
+      }
+      .modal-body table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .modal-body thead th {
+        position: sticky;
+        top: 0;
+      }
+      .clickable-cell {
+        cursor: pointer;
+        color: var(--blue);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .clickable-cell span {
+        display: inline-block;
+        background: rgba(59,130,246,0.08);
+        border: 1px solid rgba(59,130,246,0.2);
+        border-radius: 6px;
+        padding: 2px 10px;
+        min-width: 48px;
+        text-align: center;
+        transition: all 0.15s ease;
+      }
+      .clickable-cell:hover span {
+        background: rgba(59,130,246,0.16);
+        border-color: rgba(59,130,246,0.4);
+        box-shadow: 0 1px 3px rgba(59,130,246,0.15);
+      }
+      .status-tag {
+        display: inline-block;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+      .status-tag.contract { background: rgba(16,185,129,0.1); color: var(--green); }
+      .status-tag.pending { background: rgba(245,158,11,0.1); color: var(--amber); }
+      .status-tag.lost { background: rgba(239,68,68,0.06); color: var(--red); }
+      .status-tag.other { background: var(--surface-alt); color: var(--ink-muted); }
+
+      .content-modal-box { max-width: 400px; }
+      .content-modal-body { max-height: 88vh; overflow-y: auto; padding: 4px; }
+      .content-video-wrap { margin-bottom: 24px; }
+      .content-video-wrap video { width: 100%; max-height: 65vh; border-radius: 12px; background: #000; aspect-ratio: 9/16; object-fit: contain; display: block; }
+      .content-stories-wrap { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+      .content-stories-wrap img { max-width: 180px; border-radius: 12px; box-shadow: var(--shadow-md); cursor: pointer; transition: transform 0.2s; display: block; }
+      .content-stories-wrap img:hover { transform: scale(1.03); }
+      .content-stories-wrap img.expanded { max-width: 100%; cursor: zoom-out; }
+      .content-section-title { font-weight: 600; margin-bottom: 10px; font-size: 14px; }
+
+      @media (max-width: 768px) {
+        .topbar {
+          padding: 16px 16px 0;
+        }
+        .main {
+          padding: 16px 16px 60px;
+        }
+        .hero-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        .metric-value {
+          font-size: 22px;
+        }
+        .metric-card {
+          padding: 14px 16px;
+        }
+        thead th,
+        tbody td {
+          padding: 8px 10px;
+          font-size: 11px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-row">
+          <div class="topbar-left">
+            <div class="logo-mark">K</div>
+            <div>
+              <h1>KPI Dashboard</h1>
+              <div class="sub" id="subtitle">読み込み中…</div>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <button id="reloadBtn" type="button" title="再読み込み">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+              再読み込み
+            </button>
+            <input id="filePicker" type="file" accept="application/json" style="display: none" />
+            <button id="fileBtn" type="button" title="file:// 直開き用（kpi.jsonを手動読込）">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              KPI JSON選択
+            </button>
+          </div>
+        </div>
+        <div class="tabs" id="tabsContainer">
+          <button class="tab active" data-tab="overview">概要</button>
+          <button class="tab" data-tab="insight">IG-Masa <span class="tab-count" id="tabInsightCount">--</span></button>
+          <button class="tab" data-tab="kpi">KPI詳細 <span class="tab-count" id="tabKpiCount">--</span></button>
+          <button class="tab" data-tab="sales">営業詳細 <span class="tab-count" id="tabSalesCount">--</span></button>
+          <button class="tab" data-tab="daily">日次 <span class="tab-count" id="tabDailyCount">--</span></button>
+          <button class="tab" data-tab="threads">Threads <span class="tab-count" id="tabThreadsCount">--</span></button>
+          <button class="tab" data-tab="external">外部連携 <span class="tab-count" id="tabExternalCount">--</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="section active" id="sec-overview">
+
+        <div id="mediaBreakdownWrap" style="display:none; margin-bottom:20px">
+          <div class="section-header">
+            <div class="section-meta">
+              <span style="font-size: 14px; font-weight: 600">媒体別アポ状況（当月）</span>
+              <div class="badge accent" id="mediaMonthBadge">--</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <div class="table-scroll" style="max-height: 50vh">
+              <table>
+                <thead>
+                  <tr>
+                    <th>媒体</th>
+                    <th>目標アポ数</th>
+                    <th>着地予想</th>
+                    <th>現状アポ数</th>
+                    <th>現時点実施数</th>
+                    <th>残りアポ(今日)</th>
+                    <th>残りアポ(今月)</th>
+                    <th>目標売上</th>
+                    <th>着地予想(売上)</th>
+                    <th>アポ単価</th>
+                    <th>現状売上</th>
+                    <th>現状売上(ほぼ確)</th>
+                    <th>検討額上乗せ</th>
+                  </tr>
+                </thead>
+                <tbody id="mediaBreakdownTbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="hint">
+            ※ 残りアポ(今月)＝未実施残り＋今後の新規×90%。着地予想(売上)＝ほぼ確＋検討×20%＋単価×残りアポ。アポ単価＝実績(売上÷実施数)があればそれを使用<br />
+            ※ 現状売上・検討額・実施数は sales.json の流入経路から媒体にマッピング
+          </div>
+        </div>
+
+        <div id="mediaListWrap" style="display:none; margin-bottom:20px">
+          <div class="section-header">
+            <div class="section-meta">
+              <span style="font-size: 14px; font-weight: 600">媒体別リスト・誘導状況（当月）</span>
+              <div class="badge accent" id="mediaListMonthBadge">--</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <div class="table-scroll" style="max-height: 40vh">
+              <table>
+                <thead>
+                  <tr>
+                    <th>媒体</th>
+                    <th>リスト数</th>
+                    <th>誘導率(CVR)</th>
+                    <th>アポ数</th>
+                    <th>平均リスト/日</th>
+                    <th>平均アポ/日</th>
+                  </tr>
+                </thead>
+                <tbody id="mediaListTbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="hint">※ kpi.json（アポ誘導数シート）の当月データ</div>
+        </div>
+
+        <div style="margin-bottom: 20px">
+          <div class="section-header">
+            <div class="section-meta">
+              <span style="font-size: 14px; font-weight: 600">KPI 月次サマリー</span>
+              <div class="badge accent" id="monthsBadge">--</div>
+              <div class="badge" id="updatedBadge">--</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <div class="table-scroll" style="max-height: 38vh">
+              <table>
+                <thead>
+                  <tr>
+                    <th>月</th>
+                    <th>リスト合計</th>
+                    <th>アポ合計</th>
+                    <th>平均リスト/日</th>
+                    <th>平均アポ/日</th>
+                    <th>CVR</th>
+                    <th>リスト化率</th>
+                    <th>日数</th>
+                  </tr>
+                </thead>
+                <tbody id="monthTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-header">
+            <div class="section-meta">
+              <span style="font-size: 14px; font-weight: 600">営業 月次サマリー</span>
+              <div class="badge accent" id="salesMonthsBadge">--</div>
+              <div class="badge" id="salesUpdatedBadge">--</div>
+            </div>
+            <select id="salesInflowSelect" aria-label="媒体">
+              <option value="__ALL__">全媒体</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <div class="table-scroll" style="max-height: 38vh">
+              <table>
+                <thead>
+                  <tr>
+                    <th>月</th>
+                    <th>アポ誘導数（KPI）</th>
+                    <th>実施アポ数（アポ月）</th>
+                    <th>有効アポ</th>
+                    <th>キャンセル</th>
+                    <th>未着席</th>
+                    <th>損切</th>
+                    <th>成約数（実施月）</th>
+                    <th>成約率</th>
+                    <th>検討数</th>
+                    <th>検討額</th>
+                    <th>売上（着金月）</th>
+                    <th>着金件数</th>
+                    <th>平均着金単価</th>
+                  </tr>
+                </thead>
+                <tbody id="salesMonthTbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="error" id="salesError" style="display: none"></div>
+          <div class="hint">
+            ※ 計上月の違い：実施アポ数・成約数・成約率＝アポ日程（月）／売上＝着金日（月）<br />
+            ※ 成約率：有効アポ＝アポ−(キャンセル+未着席+損切) を分母<br />
+            ※ G列（現状ステータス）が空欄の行は除外／2025-04〜06は非表示<br />
+            ※ 「アポ誘導数（KPI）」は kpi.json（月合計 apps）。媒体別には分解できないため媒体フィルタ時は -- 表示
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section" id="sec-kpi">
+        <div class="section-header">
+          <div class="section-meta">
+            <span style="font-size: 14px; font-weight: 600">KPI 月次詳細</span>
+            <div class="badge accent" id="monthsBadge2">--</div>
+            <div class="badge" id="updatedBadge2">--</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll" style="max-height: 70vh">
+            <table>
+              <thead>
+                <tr>
+                  <th>月</th>
+                  <th>リスト合計</th>
+                  <th>アポ合計</th>
+                  <th>平均リスト/日</th>
+                  <th>平均アポ/日</th>
+                  <th>CVR</th>
+                  <th>リスト化率</th>
+                  <th>日数</th>
+                </tr>
+              </thead>
+              <tbody id="monthTbody2"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="sec-insight">
+        <div class="section-header">
+          <div class="section-meta">
+            <span style="font-size: 14px; font-weight: 600">IG-Masa 月次パフォーマンス</span>
+            <div class="badge accent" id="insightMonthsBadge">--</div>
+            <div class="badge" id="insightUpdatedBadge">--</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll" style="max-height: 70vh">
+            <table>
+              <thead>
+                <tr>
+                  <th>月</th>
+                  <th>インプレッション</th>
+                  <th>リスト化率</th>
+                  <th>リスト数</th>
+                  <th>誘導率(CVR)</th>
+                  <th>誘導数(アポ)</th>
+                  <th>ストーリー閲覧数</th>
+                </tr>
+              </thead>
+              <tbody id="insightMonthTbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="error" id="insightError" style="display: none"></div>
+        <div class="hint">※ インプレッション・ストーリー = insight.json / リスト・誘導 = kpi.json (IG-Masa) / リスト化率 = リスト数÷インプレッション</div>
+      </div>
+
+      <div class="section" id="sec-sales">
+        <div class="section-header">
+          <div class="section-meta">
+            <span style="font-size: 14px; font-weight: 600">営業 月次詳細</span>
+            <div class="badge accent" id="salesMonthsBadge2">--</div>
+            <div class="badge" id="salesUpdatedBadge2">--</div>
+          </div>
+          <select id="salesInflowSelect2" aria-label="媒体">
+            <option value="__ALL__">全媒体</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll" style="max-height: 70vh">
+            <table>
+              <thead>
+                <tr>
+                  <th>月</th>
+                  <th>アポ誘導数（KPI）</th>
+                  <th>実施アポ数（アポ月）</th>
+                  <th>有効アポ</th>
+                  <th>キャンセル</th>
+                  <th>未着席</th>
+                  <th>損切</th>
+                  <th>成約数（実施月）</th>
+                  <th>成約率</th>
+                  <th>検討数</th>
+                    <th>検討額</th>
+                    <th>売上（着金月）</th>
+                    <th>着金件数</th>
+                    <th>平均着金単価</th>
+                  </tr>
+                </thead>
+                <tbody id="salesMonthTbody2"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="error" id="salesError2" style="display: none"></div>
+        <div class="hint">
+          ※ 同上（概要の営業サマリーと同じ計算）
+        </div>
+      </div>
+
+      <div class="section" id="sec-threads">
+        <div class="section-header">
+          <div class="section-meta">
+            <span style="font-size: 14px; font-weight: 600">Threads 投稿インサイト</span>
+            <div class="badge accent" id="threadsSummaryBadge">--</div>
+            <div class="badge" id="threadsUpdatedBadge">--</div>
+          </div>
+        </div>
+        <div class="hero-grid" style="margin-bottom: 16px">
+          <div class="metric-card blue">
+            <span class="metric-label">総投稿数</span>
+            <span class="metric-value" id="threadsTotalPosts">--</span>
+          </div>
+          <div class="metric-card green">
+            <span class="metric-label">平均インプ</span>
+            <span class="metric-value" id="threadsAvgImp">--</span>
+          </div>
+          <div class="metric-card amber">
+            <span class="metric-label">直近30日インプ合計</span>
+            <span class="metric-value" id="threadsImp30d">--</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll" style="max-height: 60vh">
+            <table>
+              <thead>
+                <tr>
+                  <th>投稿日</th>
+                  <th>インプ</th>
+                  <th>いいね</th>
+                  <th>返信</th>
+                  <th>再投稿</th>
+                  <th>テキスト（抜粋）</th>
+                </tr>
+              </thead>
+              <tbody id="threadsPostTbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="error" id="threadsError" style="display: none"></div>
+        <div class="hint">※ GASラボ Threadsインサイト自動取得ツール → threads.gs で threads.json に出力</div>
+      </div>
+
+      <div class="section" id="sec-external">
+        <div class="section-header">
+          <div class="section-meta">
+            <span style="font-size: 14px; font-weight: 600">外部連携（EG）セールス</span>
+            <div class="badge accent" id="externalBadge">--</div>
+          </div>
+        </div>
+
+        <!-- A. サマリーカード -->
+        <div class="hero-grid" style="margin-bottom: 16px">
+          <div class="metric-card blue">
+            <span class="metric-label">総エントリー数</span>
+            <span class="metric-value" id="extTotalEntries">--</span>
+          </div>
+          <div class="metric-card green">
+            <span class="metric-label">アポ設定率</span>
+            <span class="metric-value" id="extApoRate">--</span>
+          </div>
+          <div class="metric-card amber">
+            <span class="metric-label">面談済み</span>
+            <span class="metric-value" id="extInterviewed">--</span>
+          </div>
+          <div class="metric-card green">
+            <span class="metric-label">成約数</span>
+            <span class="metric-value" id="extContracts">--</span>
+          </div>
+          <div class="metric-card blue">
+            <span class="metric-label">成約率</span>
+            <span class="metric-value" id="extContractRate">--</span>
+          </div>
+          <div class="metric-card green">
+            <span class="metric-label">売上合計</span>
+            <span class="metric-value" id="extTotalRevenue">--</span>
+          </div>
+        </div>
+
+        <!-- B. パートナー別ファネル -->
+        <div class="section-header" style="margin-top:20px">
+          <div class="section-meta">
+            <span style="font-size: 13px; font-weight: 600">パートナー別ファネル</span>
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-bottom:16px">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>パートナー</th>
+                  <th>オプチャ人数</th>
+                  <th>参加率</th>
+                  <th>最大視聴</th>
+                  <th>最終オファー</th>
+                  <th>LINE移行</th>
+                  <th>LINE CVR</th>
+                  <th>アポ数</th>
+                  <th>アポ CVR</th>
+                  <th>成約</th>
+                </tr>
+              </thead>
+              <tbody id="extFunnelTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- C. セールス進捗テーブル -->
+        <div class="section-header" style="margin-top:20px">
+          <div class="section-meta">
+            <span style="font-size: 13px; font-weight: 600">セールス進捗</span>
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-bottom:16px">
+          <div class="table-scroll" style="max-height: 60vh">
+            <table>
+              <thead>
+                <tr>
+                  <th>名前</th>
+                  <th>担当者</th>
+                  <th>ステータス</th>
+                  <th>アポ日程</th>
+                  <th>アポ時間</th>
+                  <th>成約</th>
+                  <th>料金</th>
+                </tr>
+              </thead>
+              <tbody id="extSalesTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- D. 売上目標 vs 実績 -->
+        <div class="section-header" style="margin-top:20px">
+          <div class="section-meta">
+            <span style="font-size: 13px; font-weight: 600">売上目標 vs 実績（月次）</span>
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-bottom:16px">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>月</th>
+                  <th>目標</th>
+                  <th>実績</th>
+                  <th>達成率</th>
+                </tr>
+              </thead>
+              <tbody id="extTargetTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- E. 今後のスケジュール -->
+        <div class="section-header" style="margin-top:20px">
+          <div class="section-meta">
+            <span style="font-size: 13px; font-weight: 600">今後のスケジュール</span>
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-bottom:16px">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>パートナー</th>
+                  <th>開催日</th>
+                  <th>ステータス</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>きららさん</td>
+                  <td>2/23（済）</td>
+                  <td><span class="status-tag contract">完了</span></td>
+                </tr>
+                <tr>
+                  <td>marinaさん</td>
+                  <td>3/15（予定）</td>
+                  <td><span class="status-tag pending">準備中</span></td>
+                </tr>
+                <tr>
+                  <td>Lisaさん</td>
+                  <td>3/22以降</td>
+                  <td><span class="status-tag other">計画中</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="error" id="externalError" style="display: none"></div>
+      </div>
+
+      <div class="section" id="sec-daily">
+        <div class="section-header">
+          <div class="section-meta">
+            <span style="font-size: 14px; font-weight: 600">日次（KPI）</span>
+            <div class="badge accent" id="rowsBadge">--</div>
+            <div class="badge" id="sortBadge">日付 昇順</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll" style="max-height: 70vh">
+            <table>
+              <thead>
+                <tr>
+                  <th>月</th>
+                  <th>日付</th>
+                  <th>リスト</th>
+                  <th>アポ</th>
+                  <th>CVR</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="error" id="error" style="display: none"></div>
+        <div class="hint">
+          ※ `file://` 直開きで fetch が止まる場合は「KPI JSON選択」で kpi.json を選んでください（kpiだけ手動読込）
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="detailModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 id="modalTitle">--</h3>
+          <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-stats" id="modalStats"></div>
+        <div class="modal-body">
+          <table>
+            <thead id="modalThead">
+              <tr>
+                <th>名前</th>
+                <th>アポ日</th>
+                <th>ステータス</th>
+                <th>成約</th>
+                <th>料金</th>
+              </tr>
+            </thead>
+            <tbody id="modalTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="contentModal">
+      <div class="modal-box content-modal-box">
+        <div class="modal-header">
+          <h3 id="contentModalTitle">投稿・ストーリー</h3>
+          <button class="modal-close" id="contentModalClose">&times;</button>
+        </div>
+        <div class="modal-body content-modal-body" id="contentModalBody"></div>
+      </div>
+    </div>
+
+    <script>
+      const KPI_URL = "./kpi.json";
+      const INSIGHT_URL = "./insight.json";
+      const SALES_URL = "./sales.json";
+      const APO_URL = "./appointments.json";
+      const CONTENT_URL = "./content.json";
+      const ANALYSIS_URL = "./analysis.json";
+      const THREADS_URL = "./threads.json";
+
+      let cachedKpi = null;
+      let cachedContent = null;
+      let cachedAnalysis = null;
+      let insightMonthsCache = null;
+      let cachedSales = null;
+      let cachedApo = null; // appointments.json
+      let selectedSalesInflow = "__ALL__";
+      let kpiAppsByMonth = null; // KPI apps（月合計）
+
+      const el = {
+        subtitle: document.getElementById("subtitle"),
+        // heroGrid removed
+        reloadBtn: document.getElementById("reloadBtn"),
+        fileBtn: document.getElementById("fileBtn"),
+        filePicker: document.getElementById("filePicker"),
+
+        tabKpiCount: document.getElementById("tabKpiCount"),
+        tabInsightCount: document.getElementById("tabInsightCount"),
+        tabSalesCount: document.getElementById("tabSalesCount"),
+        tabDailyCount: document.getElementById("tabDailyCount"),
+        tabThreadsCount: document.getElementById("tabThreadsCount"),
+
+        monthsBadge: document.getElementById("monthsBadge"),
+        updatedBadge: document.getElementById("updatedBadge"),
+        monthsBadge2: document.getElementById("monthsBadge2"),
+        updatedBadge2: document.getElementById("updatedBadge2"),
+        monthTbody: document.getElementById("monthTbody"),
+        monthTbody2: document.getElementById("monthTbody2"),
+
+        insightMonthsBadge: document.getElementById("insightMonthsBadge"),
+        insightUpdatedBadge: document.getElementById("insightUpdatedBadge"),
+        insightMonthTbody: document.getElementById("insightMonthTbody"),
+        insightError: document.getElementById("insightError"),
+
+        salesMonthsBadge: document.getElementById("salesMonthsBadge"),
+        salesUpdatedBadge: document.getElementById("salesUpdatedBadge"),
+        salesMonthsBadge2: document.getElementById("salesMonthsBadge2"),
+        salesUpdatedBadge2: document.getElementById("salesUpdatedBadge2"),
+        salesInflowSelect: document.getElementById("salesInflowSelect"),
+        salesInflowSelect2: document.getElementById("salesInflowSelect2"),
+        salesMonthTbody: document.getElementById("salesMonthTbody"),
+        salesMonthTbody2: document.getElementById("salesMonthTbody2"),
+        salesError: document.getElementById("salesError"),
+        salesError2: document.getElementById("salesError2"),
+
+        rowsBadge: document.getElementById("rowsBadge"),
+        sortBadge: document.getElementById("sortBadge"),
+        tbody: document.getElementById("tbody"),
+        error: document.getElementById("error"),
+
+        threadsTotalPosts: document.getElementById("threadsTotalPosts"),
+        threadsAvgImp: document.getElementById("threadsAvgImp"),
+        threadsImp30d: document.getElementById("threadsImp30d"),
+        threadsPostTbody: document.getElementById("threadsPostTbody"),
+        threadsSummaryBadge: document.getElementById("threadsSummaryBadge"),
+        threadsUpdatedBadge: document.getElementById("threadsUpdatedBadge"),
+        threadsError: document.getElementById("threadsError"),
+
+        tabExternalCount: document.getElementById("tabExternalCount"),
+        externalBadge: document.getElementById("externalBadge"),
+        extTotalEntries: document.getElementById("extTotalEntries"),
+        extApoRate: document.getElementById("extApoRate"),
+        extInterviewed: document.getElementById("extInterviewed"),
+        extContracts: document.getElementById("extContracts"),
+        extContractRate: document.getElementById("extContractRate"),
+        extTotalRevenue: document.getElementById("extTotalRevenue"),
+        extFunnelTbody: document.getElementById("extFunnelTbody"),
+        extSalesTbody: document.getElementById("extSalesTbody"),
+        extTargetTbody: document.getElementById("extTargetTbody"),
+        externalError: document.getElementById("externalError"),
+      };
+
+      // modal
+      const modal = document.getElementById("detailModal");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalTbody = document.getElementById("modalTbody");
+      document.getElementById("modalClose").onclick = () => modal.classList.remove("open");
+      modal.onclick = (e) => {
+        if (e.target === modal) modal.classList.remove("open");
+        const td = e.target.closest(".clickable-date");
+        if (td && td.dataset.date) showContentModal_(td.dataset.date);
+      };
+
+      const contentModal = document.getElementById("contentModal");
+      document.getElementById("contentModalClose").onclick = () => closeContentModal_();
+      contentModal.onclick = (e) => { if (e.target === contentModal) closeContentModal_(); };
+
+      function statusTag_(contract, status) {
+        const c = String(contract ?? "").trim();
+        const s = String(status ?? "").trim();
+        if (c.includes("成約") || c === "成約予定") return `<span class="status-tag contract">${escapeHtml_(c)}</span>`;
+        if (c.includes("検討")) return `<span class="status-tag pending">${escapeHtml_(c)}</span>`;
+        if (c.includes("失注") || c.includes("損切") || s.includes("キャンセル") || s.includes("未着席")) return `<span class="status-tag lost">${escapeHtml_(c || s)}</span>`;
+        return `<span class="status-tag other">${escapeHtml_(c || s || "--")}</span>`;
+      }
+
+      // INFLOW_TO_MEDIA stored for modal use
+      const MODAL_INFLOW_MAP = {
+        "Youtube": "YT-Masa", "Instagram": "IG-Masa", "TikTok": "TT-Masa",
+        "YT-short": "YT-short", "threads": "Threads", "ig-miki": "IG-miki",
+        "Nina_Youtube経由": "Nina", "勉強会_大ローンチ": "勉強会_大ローンチ",
+        "勉強会(Instagram)": "既存リスト", "勉強会(Youtube)": "既存リスト",
+        "勉強会(TikTok)": "既存リスト", "勉強会(YT-short)": "既存リスト",
+        "ig-cocona": "IG-Masa", "不明": "外部",
+      };
+
+      function getMediaSalesRows_(mediaName, monthKey) {
+        if (!cachedSales?.rows) return [];
+        const matchingInflows = new Set();
+        for (const [inf, med] of Object.entries(MODAL_INFLOW_MAP)) {
+          if (med === mediaName) matchingInflows.add(inf);
+        }
+        const matches = [];
+        for (const r of cachedSales.rows) {
+          if (!hasStatus_(r)) continue;
+          const inf = normalizeInflow_(r?.inflow);
+          if (!matchingInflows.has(inf)) continue;
+          const apm = toMonthKey_(r?.apo_date);
+          if (apm === monthKey) matches.push(r);
+        }
+        matches.sort((a, b) => {
+          const ad = a.apo_date || "9999";
+          const bd = b.apo_date || "9999";
+          return ad < bd ? -1 : ad > bd ? 1 : 0;
+        });
+        return matches;
+      }
+
+      function showDailyBreakdown_(mediaName, view) {
+        if (!cachedKpi?.by_media?.[mediaName]) return;
+        const now = new Date();
+        const cm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const md = cachedKpi.by_media[mediaName];
+        const mth = md?.months?.[cm];
+        const dailyArr = mth?.daily || [];
+        const isLists = view === "daily-lists";
+        const label = isLists ? "リスト数" : "アポ数";
+        const title = `${mediaName} - ${cm} ${label} 日別内訳`;
+
+        // 日別データをソート
+        const sorted = [...dailyArr].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+
+        // 合計
+        let total = 0;
+        for (const d of sorted) total += (isLists ? d.lists : d.apps) || 0;
+
+        const overlay = document.getElementById("detailModal");
+        document.getElementById("modalTitle").textContent = title;
+
+        // 統計バー
+        const statsEl = document.getElementById("modalStats");
+        const activeDays = sorted.filter(d => (isLists ? d.lists : d.apps) > 0).length;
+        const avg = activeDays > 0 ? (total / activeDays).toFixed(1) : "--";
+        statsEl.innerHTML = `<span>合計 <b>${fmtNum(total)}</b></span><span>稼働日数 <b>${activeDays}日</b></span><span>平均/日 <b>${avg}</b></span>`;
+        statsEl.style.display = "flex";
+
+        const thead = document.getElementById("modalThead");
+        thead.innerHTML = "<tr><th>日付</th><th>曜日</th><th>" + escapeHtml_(label) + "</th><th>累計</th></tr>";
+
+        const tbody = document.getElementById("modalTbody");
+        tbody.innerHTML = "";
+
+        const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
+        let cumulative = 0;
+
+        for (const d of sorted) {
+          const val = (isLists ? d.lists : d.apps) || 0;
+          cumulative += val;
+          const dt = new Date(d.date + "T00:00:00+09:00");
+          const dayOfWeek = dayNames[dt.getDay()];
+          const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
+          const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+          const isToday = d.date === todayStr;
+
+          const tr = document.createElement("tr");
+          if (isToday) tr.style.background = "rgba(59,130,246,0.08)";
+          if (val === 0) tr.style.color = "var(--ink-muted)";
+          const hasContent = cachedContent && cachedContent[d.date];
+          const hasAnalysis = cachedAnalysis && cachedAnalysis[d.date] && cachedAnalysis[d.date].length > 0;
+          const hasDetail = hasContent || hasAnalysis;
+          const dateClass = hasDetail ? "clickable-cell clickable-date" : "";
+          const dateTitle = hasDetail ? "タップで投稿・ストーリー・分析を表示" : "";
+          const icons = (hasContent ? " 📷" : "") + (hasAnalysis ? " 📝" : "");
+          tr.innerHTML = `
+            <td class="${dateClass}" data-date="${escapeHtml_(d.date)}" title="${dateTitle}">${escapeHtml_(d.date.slice(5))}${icons}</td>
+            <td style="${isWeekend ? 'color:var(--red)' : ''}">${dayOfWeek}</td>
+            <td style="font-weight:${val > 0 ? '600' : '400'}">${fmtNum(val)}</td>
+            <td style="color:var(--ink-muted)">${fmtNum(cumulative)}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        overlay.classList.add("open");
+      }
+
+      function showContentModal_(dateStr) {
+        const c = cachedContent && cachedContent[dateStr];
+        const analyses = cachedAnalysis && cachedAnalysis[dateStr];
+        if (!c && (!analyses || analyses.length === 0)) return;
+        document.getElementById("contentModalTitle").textContent = dateStr + " 投稿・ストーリー・分析";
+        const body = document.getElementById("contentModalBody");
+        let html = "";
+        if (c) {
+          if (c.post) {
+            html += `<div class="content-video-wrap"><div class="content-section-title">📹 投稿: ${escapeHtml_(c.post.title || "")}</div>`;
+            html += `<video id="contentModalVideo" src="${escapeHtml_(c.post.file)}" controls playsinline></video></div>`;
+          }
+          if (c.stories && c.stories.length > 0) {
+            html += `<div><div class="content-section-title">📷 ストーリー (${c.stories.length}枚)</div>`;
+            html += `<div class="content-stories-wrap">`;
+            for (const s of c.stories) {
+              html += `<img src="${escapeHtml_(s)}" alt="story" onclick="this.classList.toggle('expanded')" title="クリックで拡大">`;
+            }
+            html += `</div></div>`;
+          }
+        }
+        if (analyses && analyses.length > 0) {
+          html += `<div class="content-section-title" style="margin-top:16px">📝 分析 (${analyses.length}件)</div>`;
+          for (var ai = 0; ai < analyses.length; ai++) {
+            var a = analyses[ai];
+            html += `<div class="analysis-entry" style="margin-bottom:16px;padding:12px;background:var(--surface-alt);border-radius:8px">`;
+            if (a.title) html += `<div style="font-weight:600;margin-bottom:4px">${escapeHtml_(a.title)}</div>`;
+            if (a.link) html += `<a href="${escapeHtml_(a.link)}" target="_blank" rel="noopener" style="font-size:0.85rem;color:var(--blue)">${escapeHtml_(a.link)}</a>`;
+            if (a.images && a.images.length > 0) {
+              html += `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0">`;
+              for (var ii = 0; ii < a.images.length; ii++) {
+                html += `<img src="${escapeHtml_(a.images[ii])}" alt="insight" style="max-width:120px;max-height:120px;border-radius:6px;object-fit:cover" onclick="this.style.maxWidth=this.style.maxWidth==='100%'?'120px':'100%';this.style.maxHeight=this.style.maxHeight==='none'?'120px':'none'">`;
+              }
+              html += `</div>`;
+            }
+            html += `<div style="white-space:pre-wrap;font-size:0.9rem;line-height:1.5">${escapeHtml_(a.analysis || "")}</div>`;
+            html += `</div>`;
+          }
+        }
+        body.innerHTML = html || "<p style='color:var(--ink-muted)'>コンテンツ・分析なし</p>";
+        document.getElementById("contentModal").classList.add("open");
+      }
+
+      function closeContentModal_() {
+        const v = document.getElementById("contentModalVideo");
+        if (v) { v.pause(); v.currentTime = 0; }
+        contentModal.classList.remove("open");
+      }
+
+      function showMediaDetail_(mediaName, view) {
+        const now = new Date();
+        const cm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const allRows = getMediaSalesRows_(mediaName, cm);
+
+        let filtered = allRows;
+        let title = "";
+        let cols = [];
+
+        if (view === "apo") {
+          // 現状アポ数 = appointments.json の total（今月確定アポ合計）
+          // appointments.json details + sales.json クロス参照で申込日を取得
+          title = `${mediaName} - ${cm} 現状アポ数 内訳`;
+          cols = ["名前", "アポ日", "申込日", "申込区分"];
+
+          // sales.json の名前→レコードマップ作成（スペース除去で正規化）
+          const normName = (n) => (n || "").replace(/\s+/g, "").replace(/\u3000/g, "").trim();
+          const matchingInflows = new Set();
+          for (const [inf, med] of Object.entries(MODAL_INFLOW_MAP)) {
+            if (med === mediaName) matchingInflows.add(inf);
+          }
+          const salesMap = {};
+          if (cachedSales?.rows) {
+            for (const r of cachedSales.rows) {
+              if (!hasStatus_(r)) continue;
+              const inf = normalizeInflow_(r?.inflow);
+              if (!matchingInflows.has(inf)) continue;
+              const key = normName(r?.name);
+              if (key) salesMap[key] = r;
+            }
+          }
+
+          const apoMedia = cachedApo?.by_media?.[mediaName];
+          if (apoMedia?.details && apoMedia.details.length > 0) {
+            filtered = apoMedia.details.map(d => {
+              const sr = salesMap[normName(d.name)];
+              // appointments.json の applied_at を優先、なければ sales.json にフォールバック
+              const appliedAt = d.applied_at || sr?.applied_at || null;
+              const appliedMonth = toMonthKey_(appliedAt);
+              let apoSource = "申込日不明";
+              if (appliedMonth === cm) apoSource = "今月申込";
+              else if (appliedMonth && appliedMonth < cm) apoSource = "先月以前申込";
+              else if (appliedMonth && appliedMonth > cm) apoSource = "来月以降申込";
+              return {
+                name: d.name || "不明",
+                apo_date: d.date,
+                applied_at: appliedAt,
+                _apoSource: apoSource,
+                _execStatus: d.status,
+              };
+            });
+          } else {
+            // fallback: sales.json
+            for (const r of filtered) {
+              const appliedMonth = toMonthKey_(r?.applied_at);
+              r._apoSource = appliedMonth === cm ? "今月申込" : (appliedMonth ? "先月以前申込" : "申込日不明");
+            }
+          }
+        } else if (view === "exec") {
+          title = `${mediaName} - ${cm} アポ内訳`;
+          cols = ["名前", "アポ日", "ステータス", "成約", "料金"];
+          // all rows (apo month match)
+        } else if (view === "revenue") {
+          title = `${mediaName} - ${cm} 現状売上 内訳`;
+          cols = ["名前", "着金日", "成約", "料金"];
+          filtered = [];
+          if (cachedSales?.rows) {
+            const matchingInflows = new Set();
+            for (const [inf, med] of Object.entries(MODAL_INFLOW_MAP)) {
+              if (med === mediaName) matchingInflows.add(inf);
+            }
+            for (const r of cachedSales.rows) {
+              if (!hasStatus_(r)) continue;
+              const inf = normalizeInflow_(r?.inflow);
+              if (!matchingInflows.has(inf)) continue;
+              const pm = toMonthKey_(r?.paid_at);
+              if (pm === cm && Number(r?.price ?? 0) > 0) filtered.push(r);
+            }
+          }
+          filtered.sort((a, b) => (a.paid_at || "") < (b.paid_at || "") ? -1 : 1);
+        } else if (view === "almost") {
+          title = `${mediaName} - ${cm} 現状売上(ほぼ確) 内訳`;
+          cols = ["名前", "着金日", "成約", "料金", "備考"];
+          filtered = [];
+          if (cachedSales?.rows) {
+            const matchingInflows = new Set();
+            for (const [inf, med] of Object.entries(MODAL_INFLOW_MAP)) {
+              if (med === mediaName) matchingInflows.add(inf);
+            }
+            for (const r of cachedSales.rows) {
+              if (!hasStatus_(r)) continue;
+              const inf = normalizeInflow_(r?.inflow);
+              if (!matchingInflows.has(inf)) continue;
+              const pm = toMonthKey_(r?.paid_at);
+              const c = String(r?.contract ?? "").trim();
+              // 着金済み or 成約予定
+              if ((pm === cm && Number(r?.price ?? 0) > 0) || c === "成約予定") {
+                filtered.push(r);
+              }
+            }
+          }
+          filtered.sort((a, b) => (a.paid_at || a.apo_date || "") < (b.paid_at || b.apo_date || "") ? -1 : 1);
+        } else if (view === "pending") {
+          title = `${mediaName} - 検討額 内訳（全期間）`;
+          cols = ["名前", "アポ日", "成約", "料金"];
+          // 日付に関係なく、該当媒体の検討中の全件を表示
+          filtered = [];
+          if (cachedSales?.rows) {
+            const matchingInflows = new Set();
+            for (const [inf, med] of Object.entries(MODAL_INFLOW_MAP)) {
+              if (med === mediaName) matchingInflows.add(inf);
+            }
+            for (const r of cachedSales.rows) {
+              if (!hasStatus_(r)) continue;
+              const inf = normalizeInflow_(r?.inflow);
+              if (!matchingInflows.has(inf)) continue;
+              const c = String(r?.contract ?? "").trim();
+              if (c.includes("検討") && !c.includes("失注")) {
+                filtered.push(r);
+              }
+            }
+          }
+          filtered.sort((a, b) => (a.apo_date || "") < (b.apo_date || "") ? -1 : 1);
+        }
+
+        title += `（${filtered.length}件）`;
+
+        // render stats bar (exec view only)
+        const statsEl = document.getElementById("modalStats");
+        statsEl.innerHTML = "";
+        statsEl.classList.remove("show");
+
+        if (view === "apo" && filtered.length > 0) {
+          let nThis = 0, nPrev = 0, nUnknown = 0, nFuture = 0;
+          for (const r of filtered) {
+            if (r._apoSource === "今月申込") nThis++;
+            else if (r._apoSource === "先月以前申込") nPrev++;
+            else if (r._apoSource === "来月以降申込") nFuture++;
+            else nUnknown++;
+          }
+          const total = filtered.length;
+          const stats = [
+            { label: "先月以前申込", count: nPrev, color: "var(--amber)" },
+            { label: "今月申込", count: nThis, color: "var(--blue)" },
+          ];
+          if (nFuture > 0) stats.push({ label: "来月以降申込", count: nFuture, color: "var(--green)" });
+          if (nUnknown > 0) stats.push({ label: "申込日不明", count: nUnknown, color: "var(--ink-muted)" });
+          for (const st of stats) {
+            statsEl.innerHTML += `
+              <div class="modal-stat">
+                <span class="stat-label">${st.label}</span>
+                <span class="stat-value" style="color:${st.color}">${st.count}件</span>
+                <span class="stat-count">/ ${total}件</span>
+              </div>`;
+          }
+          statsEl.classList.add("show");
+        }
+
+        if (view === "exec" && filtered.length > 0) {
+          let nContract = 0, nPending = 0, nSonkiri = 0, nShicchu = 0, nCancel = 0, nNoShow = 0, nOther = 0;
+          for (const r of filtered) {
+            const c = String(r?.contract ?? "").trim();
+            const s = String(r?.status ?? "").trim();
+            if (c.includes("成約") || c === "成約予定") { nContract++; }
+            else if (c.includes("検討")) { nPending++; }
+            else if (c.includes("損切")) { nSonkiri++; }
+            else if (c.includes("失注")) { nShicchu++; }
+            else if (s.includes("キャンセル") || c.includes("キャンセル")) { nCancel++; }
+            else if (s.includes("未着席") || c.includes("未着席")) { nNoShow++; }
+            else { nOther++; }
+          }
+          const total = filtered.length;
+          const pct = (n) => total > 0 ? (n / total * 100).toFixed(1) + "%" : "--";
+          const stats = [
+            { label: "成約", count: nContract, rate: pct(nContract), color: "var(--green)" },
+            { label: "検討", count: nPending, rate: pct(nPending), color: "var(--amber)" },
+            { label: "損切", count: nSonkiri, rate: pct(nSonkiri), color: "var(--red)" },
+            { label: "失注", count: nShicchu, rate: pct(nShicchu), color: "#b91c1c" },
+            { label: "キャンセル", count: nCancel, rate: pct(nCancel), color: "var(--ink-muted)" },
+            { label: "未着席", count: nNoShow, rate: pct(nNoShow), color: "var(--ink-muted)" },
+          ];
+          if (nOther > 0) stats.push({ label: "その他", count: nOther, rate: pct(nOther), color: "var(--ink-muted)" });
+          for (const st of stats) {
+            statsEl.innerHTML += `
+              <div class="modal-stat">
+                <span class="stat-label">${st.label}</span>
+                <span class="stat-value" style="color:${st.color}">${st.rate}</span>
+                <span class="stat-count">${st.count}件 / ${total}件</span>
+              </div>`;
+          }
+          statsEl.classList.add("show");
+        }
+
+        // render header
+        const thead = modal.querySelector("thead tr");
+        thead.innerHTML = cols.map(c => `<th>${escapeHtml_(c)}</th>`).join("");
+
+        modalTitle.textContent = title;
+        modalTbody.innerHTML = "";
+
+        for (const r of filtered) {
+          const tr = document.createElement("tr");
+          const price = Number(r?.price ?? 0);
+
+          if (view === "apo") {
+            const srcColor = r._apoSource === "今月申込" ? "var(--blue)"
+              : r._apoSource === "先月以前申込" ? "var(--amber)"
+              : r._apoSource === "来月以降申込" ? "var(--green)" : "var(--ink-muted)";
+            tr.innerHTML = `
+              <td style="font-family:var(--sans);font-weight:500">${escapeHtml_(r?.name || "不明")}</td>
+              <td>${escapeHtml_(r?.apo_date || "--")}</td>
+              <td>${escapeHtml_(r?.applied_at || "--")}</td>
+              <td><span class="status-tag" style="background:${srcColor}15;color:${srcColor}">${escapeHtml_(r._apoSource)}</span></td>
+            `;
+          } else if (view === "exec") {
+            tr.innerHTML = `
+              <td style="font-family:var(--sans);font-weight:500">${escapeHtml_(r?.name || "--")}</td>
+              <td>${escapeHtml_(r?.apo_date || "--")}</td>
+              <td>${escapeHtml_(r?.status || "--")}</td>
+              <td>${statusTag_(r?.contract, r?.status)}</td>
+              <td>${price > 0 ? fmtYen(price) : "--"}</td>
+            `;
+          } else if (view === "revenue") {
+            tr.innerHTML = `
+              <td style="font-family:var(--sans);font-weight:500">${escapeHtml_(r?.name || "--")}</td>
+              <td>${escapeHtml_(r?.paid_at || "--")}</td>
+              <td>${statusTag_(r?.contract, r?.status)}</td>
+              <td>${fmtYen(price)}</td>
+            `;
+          } else if (view === "almost") {
+            const c = String(r?.contract ?? "").trim();
+            const note = c === "成約予定" ? "成約予定" : "着金済";
+            tr.innerHTML = `
+              <td style="font-family:var(--sans);font-weight:500">${escapeHtml_(r?.name || "--")}</td>
+              <td>${escapeHtml_(r?.paid_at || r?.apo_date || "--")}</td>
+              <td>${statusTag_(r?.contract, r?.status)}</td>
+              <td>${fmtYen(price)}</td>
+              <td><span class="status-tag ${c === '成約予定' ? 'pending' : 'contract'}">${note}</span></td>
+            `;
+          } else if (view === "pending") {
+            tr.innerHTML = `
+              <td style="font-family:var(--sans);font-weight:500">${escapeHtml_(r?.name || "--")}</td>
+              <td>${escapeHtml_(r?.apo_date || "--")}</td>
+              <td>${statusTag_(r?.contract, r?.status)}</td>
+              <td>${fmtYen(price)}</td>
+            `;
+          }
+          modalTbody.appendChild(tr);
+        }
+
+        modal.classList.add("open");
+      }
+
+      // delegate clicks from media breakdown table
+      document.getElementById("mediaBreakdownTbody")?.addEventListener("click", (e) => {
+        const td = e.target.closest(".clickable-cell");
+        if (!td) return;
+        const media = td.dataset.media;
+        const view = td.dataset.view;
+        if (media && view) showMediaDetail_(media, view);
+      });
+
+      document.getElementById("mediaListTbody")?.addEventListener("click", (e) => {
+        const td = e.target.closest(".clickable-cell");
+        if (!td) return;
+        const media = td.dataset.media;
+        const view = td.dataset.view;
+        if (media && view) showDailyBreakdown_(media, view);
+      });
+
+      // tabs
+      document.getElementById("tabsContainer").addEventListener("click", (e) => {
+        const tab = e.target.closest(".tab");
+        if (!tab) return;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+        const target = document.getElementById("sec-" + tab.dataset.tab);
+        if (target) target.classList.add("active");
+      });
+
+      // utils
+      function fmtNum(n) {
+        return new Intl.NumberFormat("ja-JP").format(n ?? 0);
+      }
+      function fmtPct(n) {
+        if (n === null || typeof n === "undefined" || Number.isNaN(Number(n))) return "--";
+        return (Number(n) * 100).toFixed(2) + "%";
+      }
+      function fmtYen(n) {
+        const v = Number(n || 0);
+        return "¥" + new Intl.NumberFormat("ja-JP").format(v);
+      }
+      function escapeHtml_(s) {
+        return String(s)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+      function round2_(n) {
+        return Math.round(Number(n) * 100) / 100;
+      }
+      function safeMonthKeys(obj) {
+        return Object.keys(obj || {}).sort();
+      }
+
+      function showError(msg) {
+        el.error.style.display = "block";
+        el.error.textContent = msg;
+      }
+      function clearError() {
+        el.error.style.display = "none";
+        el.error.textContent = "";
+      }
+      function showInsightError(msg) {
+        el.insightError.style.display = "block";
+        el.insightError.textContent = msg;
+      }
+      function clearInsightError() {
+        el.insightError.style.display = "none";
+        el.insightError.textContent = "";
+      }
+      function showSalesError(msg) {
+        el.salesError.style.display = "block";
+        el.salesError.textContent = msg;
+        if (el.salesError2) {
+          el.salesError2.style.display = "block";
+          el.salesError2.textContent = msg;
+        }
+      }
+      function clearSalesError() {
+        el.salesError.style.display = "none";
+        el.salesError.textContent = "";
+        if (el.salesError2) {
+          el.salesError2.style.display = "none";
+          el.salesError2.textContent = "";
+        }
+      }
+
+      // KPI
+      function flattenKpiDaily_(kpi) {
+        const out = [];
+        for (const mk of safeMonthKeys(kpi?.months)) {
+          const m = kpi?.months?.[mk];
+          if (!m || !Array.isArray(m.daily)) continue;
+          for (const r of m.daily) {
+            if (!r?.date) continue;
+            out.push({ mk, date: String(r.date), lists: Number(r.lists || 0), apps: Number(r.apps || 0) });
+          }
+        }
+        out.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+        return out;
+      }
+
+      function buildKpiAppsByMonth_(kpi) {
+        const out = {};
+        const months = kpi?.months || {};
+        for (const mk of Object.keys(months)) {
+          const daily = Array.isArray(months[mk]?.daily) ? months[mk].daily : [];
+          out[mk] = daily.reduce((s, r) => s + Number(r?.apps || 0), 0);
+        }
+        return out;
+      }
+
+      function renderKpiMonthTables_(kpi) {
+        const keys = safeMonthKeys(kpi?.months);
+        const badgeText = `${keys.length} ヶ月`;
+        el.monthsBadge.textContent = badgeText;
+        el.monthsBadge2.textContent = badgeText;
+        el.tabKpiCount.textContent = keys.length;
+
+        // build rows
+        const rows = [];
+        for (const mk of keys) {
+          const m = kpi?.months?.[mk];
+          if (!m) continue;
+          const daily = Array.isArray(m.daily) ? m.daily : [];
+          const days = daily.length;
+          const totalLists = daily.reduce((s, r) => s + Number(r?.lists || 0), 0);
+          const totalApps = daily.reduce((s, r) => s + Number(r?.apps || 0), 0);
+          rows.push({ mk, totalLists, totalApps, days });
+        }
+
+        function renderTo(tbody) {
+          tbody.innerHTML = "";
+          for (const r of rows) {
+            const avgL = r.days ? round2_(r.totalLists / r.days) : "--";
+            const avgA = r.days ? round2_(r.totalApps / r.days) : "--";
+            const cvr = r.totalLists > 0 ? r.totalApps / r.totalLists : null;
+            const imp = insightMonthsCache?.[r.mk]?.total?.impressions ?? null;
+            const listRate = imp && imp > 0 ? r.totalLists / imp : null;
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${escapeHtml_(r.mk)}</td>
+              <td>${fmtNum(r.totalLists)}</td>
+              <td>${fmtNum(r.totalApps)}</td>
+              <td>${escapeHtml_(avgL)}</td>
+              <td>${escapeHtml_(avgA)}</td>
+              <td>${cvr === null ? "--" : fmtPct(cvr)}</td>
+              <td>${listRate === null ? "--" : fmtPct(listRate)}</td>
+              <td>${escapeHtml_(r.days || "--")}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        }
+        renderTo(el.monthTbody);
+        renderTo(el.monthTbody2);
+      }
+
+      function renderFromKpi(kpi) {
+        clearError();
+        cachedKpi = kpi;
+        kpiAppsByMonth = buildKpiAppsByMonth_(kpi);
+
+        const ua = kpi?.updated_at ? new Date(kpi.updated_at) : null;
+        const upd =
+          ua && !Number.isNaN(ua.getTime())
+            ? ua.toLocaleString("ja-JP", { hour12: false })
+            : String(kpi?.updated_at || "--");
+        el.updatedBadge.textContent = "更新: " + upd;
+        el.updatedBadge2.textContent = "更新: " + upd;
+
+        el.subtitle.textContent = `KPI: ${kpi?.source?.spreadsheet_id || "--"} / ${kpi?.source?.sheet_name || "--"}`;
+
+        try { renderKpiMonthTables_(kpi); } catch (e) { console.error("KPI month tables error:", e); }
+        try { renderMediaBreakdown_(kpi); } catch (e) { console.error("Media breakdown error:", e); }
+        try { renderMediaListStatus_(kpi); } catch (e) { console.error("Media list status error:", e); }
+
+        // daily table
+        const daily = flattenKpiDaily_(kpi);
+        el.rowsBadge.textContent = `${daily.length} 行`;
+        el.tabDailyCount.textContent = daily.length;
+        el.tbody.innerHTML = "";
+        for (const r of daily) {
+          const cvr = r.lists > 0 ? r.apps / r.lists : null;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml_(r.mk)}</td>
+            <td>${escapeHtml_(r.date)}</td>
+            <td>${fmtNum(r.lists)}</td>
+            <td>${fmtNum(r.apps)}</td>
+            <td>${cvr === null ? "--" : fmtPct(cvr)}</td>
+          `;
+          el.tbody.appendChild(tr);
+        }
+      }
+
+      // threads
+      function renderThreads_(data) {
+        el.threadsError.style.display = "none";
+        const summary = data?.summary || {};
+        const posts = Array.isArray(data?.posts) ? data.posts : [];
+        el.threadsTotalPosts.textContent = fmtNum(summary.total_posts ?? posts.length);
+        el.threadsAvgImp.textContent = fmtNum(summary.avg_impressions);
+        el.threadsImp30d.textContent = fmtNum(summary.total_impressions_30d);
+        el.tabThreadsCount.textContent = posts.length;
+        const ua = data?.updated_at ? new Date(data.updated_at) : null;
+        const upd = ua && !Number.isNaN(ua.getTime()) ? ua.toLocaleString("ja-JP", { hour12: false }) : (data?.updated_at || "--");
+        el.threadsUpdatedBadge.textContent = "更新: " + upd;
+        el.threadsSummaryBadge.textContent = posts.length + " 件";
+        el.threadsPostTbody.innerHTML = "";
+        for (const p of posts) {
+          const tr = document.createElement("tr");
+          const text = String(p?.text || "").trim();
+          const textShort = text.length > 50 ? text.slice(0, 50) + "…" : text;
+          tr.innerHTML = `
+            <td>${escapeHtml_(p?.posted_at || "--")}</td>
+            <td>${fmtNum(p?.impressions)}</td>
+            <td>${fmtNum(p?.likes)}</td>
+            <td>${fmtNum(p?.replies)}</td>
+            <td>${fmtNum(p?.reposts)}</td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml_(text)}">${escapeHtml_(textShort || "--")}</td>
+          `;
+          el.threadsPostTbody.appendChild(tr);
+        }
+      }
+
+      // insight
+      function buildInsightMonths_(insight) {
+        if (insight?.months && typeof insight.months === "object") return insight.months;
+        const months = {};
+        const daily = Array.isArray(insight?.daily) ? insight.daily : [];
+        for (const r of daily) {
+          const date = String(r?.date || "");
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+          const mk = date.slice(0, 7);
+          if (!months[mk]) {
+            months[mk] = {
+              daily: [],
+              total: { impressions: 0, profile_access: 0, story_max_views: 0 },
+              avg: { impressions: 0, profile_access: 0, story_max_views: 0 },
+            };
+          }
+          const imp = Number(r?.impressions || 0);
+          const prof = Number(r?.profile_access || 0);
+          const story = Number(r?.story_max_views || 0);
+          months[mk].daily.push({ date, impressions: imp, profile_access: prof, story_max_views: story });
+          months[mk].total.impressions += imp;
+          months[mk].total.profile_access += prof;
+          months[mk].total.story_max_views += story;
+        }
+        for (const mk of Object.keys(months)) {
+          const n = months[mk].daily.length || 1;
+          months[mk].avg.impressions = round2_(months[mk].total.impressions / n);
+          months[mk].avg.profile_access = round2_(months[mk].total.profile_access / n);
+          months[mk].avg.story_max_views = round2_(months[mk].total.story_max_views / n);
+        }
+        return months;
+      }
+
+      function renderInsightMonthSummary_(insight) {
+        clearInsightError();
+        const months = buildInsightMonths_(insight);
+        insightMonthsCache = months;
+        const keys = safeMonthKeys(months);
+        el.insightMonthsBadge.textContent = `${keys.length} ヶ月`;
+        el.tabInsightCount.textContent = keys.length;
+
+        const ua = insight?.updated_at ? new Date(insight.updated_at) : null;
+        const upd =
+          ua && !Number.isNaN(ua.getTime())
+            ? ua.toLocaleString("ja-JP", { hour12: false })
+            : String(insight?.updated_at || "--");
+        el.insightUpdatedBadge.textContent = "更新: " + upd;
+
+        // kpi.json の IG-Masa データを取得
+        const igKpi = cachedKpi?.by_media?.["IG-Masa"]?.months || {};
+
+        // insight と kpi の両方の月キーを統合
+        const allKeys = new Set([...keys, ...Object.keys(igKpi)]);
+        const sortedKeys = [...allKeys].sort().reverse();
+
+        el.insightMonthTbody.innerHTML = "";
+        for (const mk of sortedKeys) {
+          const im = months[mk];
+          const km = igKpi[mk];
+
+          const tI = Number(im?.total?.impressions ?? 0);
+          const tS = Number(im?.total?.story_max_views ?? 0);
+          const lists = km?.total?.lists || 0;
+          const apps = km?.total?.apps || 0;
+          const listRate = tI > 0 && lists > 0 ? (lists / tI * 100).toFixed(2) + "%" : "--";
+          const cvr = lists > 0 ? (apps / lists * 100).toFixed(1) + "%" : "--";
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml_(mk)}</td>
+            <td>${tI > 0 ? fmtNum(tI) : "--"}</td>
+            <td>${listRate}</td>
+            <td>${lists > 0 ? fmtNum(lists) : "--"}</td>
+            <td>${cvr}</td>
+            <td>${apps > 0 ? fmtNum(apps) : "--"}</td>
+            <td>${tS > 0 ? fmtNum(tS) : "--"}</td>
+          `;
+          el.insightMonthTbody.appendChild(tr);
+        }
+
+        // KPIのリスト化率更新
+        if (cachedKpi) renderKpiMonthTables_(cachedKpi);
+      }
+
+      // sales
+      function toMonthKey_(d) {
+        const s = String(d ?? "").trim();
+        if (!s) return null;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s.slice(0, 7);
+        const m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+        return m ? `${m[1]}-${String(m[2]).padStart(2, "0")}` : null;
+      }
+      function normalizeInflow_(v) {
+        return String(v ?? "").trim() || "不明";
+      }
+      function hasStatus_(r) {
+        return Boolean(String(r?.status ?? "").trim());
+      }
+      function isContract_(v) {
+        const s = String(v ?? "").trim();
+        if (!s) return false;
+        const t = s.toLowerCase();
+        if (t.includes("成約")) return true;
+        if (t === "○" || t === "◯" || t === "◎") return true;
+        if (t.includes("あり") || t.includes("有")) return true;
+        if (t === "1" || t === "true" || t === "yes") return true;
+        return false;
+      }
+      function classifyApoOutcome_(r) {
+        const t = `${String(r?.status ?? "")} ${String(r?.contract ?? "")}`.trim();
+        if (!t) return null;
+        if (t.includes("キャンセル")) return "cancel";
+        if (t.includes("未着席")) return "no_show";
+        if (t.includes("損切")) return "sunk";
+        return null;
+      }
+
+      function buildSalesInflowOptions_(sales) {
+        const rows = Array.isArray(sales?.rows) ? sales.rows : [];
+        const set = new Set();
+        for (const r of rows) {
+          if (!hasStatus_(r)) continue;
+          set.add(normalizeInflow_(r?.inflow));
+        }
+        return Array.from(set).sort((a, b) => a.localeCompare(b, "ja"));
+      }
+
+      function renderSalesInflowSelect_(sales) {
+        const options = buildSalesInflowOptions_(sales);
+        const prev = selectedSalesInflow;
+        for (const sel of [el.salesInflowSelect, el.salesInflowSelect2]) {
+          sel.innerHTML = "";
+          const allOpt = document.createElement("option");
+          allOpt.value = "__ALL__";
+          allOpt.textContent = "全媒体";
+          sel.appendChild(allOpt);
+          for (const label of options) {
+            const opt = document.createElement("option");
+            opt.value = label;
+            opt.textContent = label;
+            sel.appendChild(opt);
+          }
+        }
+        if (prev && (prev === "__ALL__" || options.includes(prev))) {
+          selectedSalesInflow = prev;
+        } else {
+          selectedSalesInflow = "__ALL__";
+        }
+        el.salesInflowSelect.value = selectedSalesInflow;
+        el.salesInflowSelect2.value = selectedSalesInflow;
+      }
+
+      function buildSalesMonths_(sales, inflow) {
+        const rows = Array.isArray(sales?.rows) ? sales.rows : [];
+        const byMonth = {};
+        const EX = new Set(["2025-04", "2025-05", "2025-06"]);
+        function ens(k) {
+          if (!byMonth[k]) byMonth[k] = { apo: 0, cancel: 0, noShow: 0, sunk: 0, contract: 0, pending: 0, pendingAmount: 0, revenue: 0, paidCount: 0 };
+          return byMonth[k];
+        }
+
+        for (const r of rows) {
+          if (!hasStatus_(r)) continue;
+          if (inflow !== "__ALL__" && normalizeInflow_(r?.inflow) !== inflow) continue;
+
+          // apo month
+          const apm = toMonthKey_(r?.apo_date);
+          if (apm && !EX.has(apm)) {
+            const m = ens(apm);
+            m.apo += 1;
+            const oc = classifyApoOutcome_(r);
+            if (oc === "cancel") m.cancel += 1;
+            else if (oc === "no_show") m.noShow += 1;
+            else if (oc === "sunk") m.sunk += 1;
+            if (isContract_(r?.contract)) m.contract += 1;
+          }
+
+          // paid month
+          const pm = toMonthKey_(r?.paid_at);
+          const rev = Number(r?.first_paid ?? 0);
+          if (pm && !EX.has(pm) && Number.isFinite(rev) && rev > 0) {
+            const m = ens(pm);
+            m.revenue += rev;
+            m.paidCount += 1;
+          }
+        }
+
+        // 検討数・検討額：L列に「検討」を含み「失注」ではない → 全件を当月にまとめる
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        for (const r of rows) {
+          if (!hasStatus_(r)) continue;
+          if (inflow !== "__ALL__" && normalizeInflow_(r?.inflow) !== inflow) continue;
+          const c = String(r?.contract ?? "");
+          if (c.includes("検討") && !c.includes("失注")) {
+            const m = ens(currentMonth);
+            m.pending += 1;
+            m.pendingAmount += Number(r?.price ?? 0);
+          }
+        }
+
+        return byMonth;
+      }
+
+      function renderSalesMonthSummary_(sales) {
+        clearSalesError();
+        const byMonth = buildSalesMonths_(sales, selectedSalesInflow);
+        const keys = safeMonthKeys(byMonth);
+        const badge = selectedSalesInflow === "__ALL__" ? `${keys.length} ヶ月` : `${keys.length} ヶ月（${selectedSalesInflow}）`;
+        el.salesMonthsBadge.textContent = badge;
+        el.salesMonthsBadge2.textContent = badge;
+        el.tabSalesCount.textContent = keys.length;
+
+        const ua = sales?.updated_at ? new Date(sales.updated_at) : null;
+        const upd =
+          ua && !Number.isNaN(ua.getTime())
+            ? ua.toLocaleString("ja-JP", { hour12: false })
+            : String(sales?.updated_at || "--");
+        el.salesUpdatedBadge.textContent = "更新: " + upd;
+        el.salesUpdatedBadge2.textContent = "更新: " + upd;
+
+        function renderTo(tbody) {
+          tbody.innerHTML = "";
+          for (const mk of keys) {
+            const m = byMonth[mk];
+            const eff = Math.max(0, m.apo - m.cancel - m.noShow - m.sunk);
+            const rate = eff > 0 ? m.contract / eff : null;
+            const avgPaid = m.paidCount > 0 ? m.revenue / m.paidCount : null;
+            const kpiApps = selectedSalesInflow === "__ALL__" ? (kpiAppsByMonth?.[mk] ?? null) : null;
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${escapeHtml_(mk)}</td>
+              <td>${kpiApps === null ? "--" : fmtNum(kpiApps)}</td>
+              <td>${fmtNum(m.apo)}</td>
+              <td>${fmtNum(eff)}</td>
+              <td>${fmtNum(m.cancel)}</td>
+              <td>${fmtNum(m.noShow)}</td>
+              <td>${fmtNum(m.sunk)}</td>
+              <td>${fmtNum(m.contract)}</td>
+              <td>${rate === null ? "--" : fmtPct(rate)}</td>
+              <td>${fmtNum(m.pending)}</td>
+              <td>${fmtYen(m.pendingAmount)}</td>
+              <td>${fmtYen(m.revenue)}</td>
+              <td>${fmtNum(m.paidCount)}</td>
+              <td>${avgPaid === null ? "--" : fmtYen(Math.round(avgPaid))}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        }
+        renderTo(el.salesMonthTbody);
+        renderTo(el.salesMonthTbody2);
+      }
+
+      // media breakdown table
+      function renderMediaListStatus_(kpi) {
+        const wrap = document.getElementById("mediaListWrap");
+        const tbody = document.getElementById("mediaListTbody");
+        const badge = document.getElementById("mediaListMonthBadge");
+        if (!kpi?.by_media) { wrap.style.display = "none"; return; }
+
+        wrap.style.display = "block";
+        const now = new Date();
+        const cm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        badge.textContent = cm;
+        tbody.innerHTML = "";
+
+        const names = Object.keys(kpi.by_media);
+        let totL = 0, totA = 0, totDays = 0;
+
+        const HIDE_MEDIA = new Set([]);
+        for (const name of names) {
+          if (HIDE_MEDIA.has(name)) continue;
+          const md = kpi.by_media[name];
+          const mth = md?.months?.[cm];
+          if (!mth) continue;
+          const lists = mth.total?.lists || 0;
+          const apps = mth.total?.apps || 0;
+          const days = mth.daily?.length || 0;
+          // 実データがある日数（lists or apps > 0）
+          const activeDays = (mth.daily || []).filter(d => d.lists > 0 || d.apps > 0).length;
+          const cvr = lists > 0 ? (apps / lists * 100).toFixed(1) + "%" : "--";
+          const avgL = activeDays > 0 ? (lists / activeDays).toFixed(1) : "--";
+          const avgA = activeDays > 0 ? (apps / activeDays).toFixed(1) : "--";
+
+          totL += lists; totA += apps;
+          if (activeDays > totDays) totDays = activeDays;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml_(name)}</td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="daily-lists"><span>${fmtNum(lists)}</span></td>
+            <td>${cvr}</td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="daily-apps"><span>${fmtNum(apps)}</span></td>
+            <td>${avgL}</td>
+            <td>${avgA}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        // 合計行
+        const totCvr = totL > 0 ? (totA / totL * 100).toFixed(1) + "%" : "--";
+        const ttr = document.createElement("tr");
+        ttr.style.fontWeight = "700";
+        ttr.style.borderTop = "2px solid var(--border)";
+        ttr.innerHTML = `
+          <td>合計</td>
+          <td>${fmtNum(totL)}</td>
+          <td>${totCvr}</td>
+          <td>${fmtNum(totA)}</td>
+          <td>${totDays > 0 ? (totL / totDays).toFixed(1) : "--"}</td>
+          <td>${totDays > 0 ? (totA / totDays).toFixed(1) : "--"}</td>
+        `;
+        tbody.appendChild(ttr);
+      }
+
+      function renderMediaBreakdown_(kpi) {
+        const wrap = document.getElementById("mediaBreakdownWrap");
+        const tbody = document.getElementById("mediaBreakdownTbody");
+        const badge = document.getElementById("mediaMonthBadge");
+        if (!kpi?.by_media || !kpi?.targets) { wrap.style.display = "none"; return; }
+
+        wrap.style.display = "block";
+        const now = new Date();
+        const cm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const elapsed = now.getDate();
+        const dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const remainDays = Math.max(1, dim - elapsed);
+        badge.textContent = cm;
+        tbody.innerHTML = "";
+
+        const DEFAULT_APO_PRICES = {
+          "YT-Masa": 71579, "IG-Masa": 123810, "TT-Masa": 150000,
+          "YT-short": 102857, "Threads": 100000, "IG-miki": 50000,
+          "Nina": 60000, "既存リスト": 100000, "X": 0, "外部": 100000,
+          "勉強会_大ローンチ": 75000,
+        };
+        const prices = kpi.apo_prices || DEFAULT_APO_PRICES;
+
+        // 媒体別 売上目標（月次）
+        const SALES_TARGETS = {
+          "YT-Masa": 2205000,
+          "IG-Masa": 7260000,
+          "TT-Masa": 1000000,
+          "YT-short": 1500000,
+          "Threads": 1500000,
+          "IG-miki": 2000000,
+          "Nina": 3000000,
+          "既存リスト": 2000000,
+          "勉強会_大ローンチ": 6000000,
+          "X": 0,
+          "外部": 3360000,
+        };
+
+        // 目標アポ数の上書き（GAS側と差異がある場合のオーバーライド）
+        const TARGET_OVERRIDES = { "外部": 30, "勉強会_大ローンチ": 80, "既存リスト": 20 };
+        // 着地予想の手動オーバーライド（計算値を使わず固定表示）
+        const PROJ_APO_OVERRIDES = { "既存リスト": 19.2, "外部": 30 };  // 外部: 30アポ × 10万円 = 300万円
+        const PROJ_REV_OVERRIDES = { "既存リスト": 1300000, "外部": 3000000 };  // 既存リスト: 現状70万 + 残り6アポ×10万=130万
+        // アポ単価の上書き（実績単価が乖離する場合のキャップ）
+        const APO_PRICE_OVERRIDES = { "IG-Masa": 130000 };  // 実績18万は高めなので13万に
+        // 残りアポ(今日)の手動オーバーライド（appointments.json と異なる場合）
+        const REMAIN_COUNT_OVERRIDES = { "勉強会_大ローンチ": 5, "既存リスト": 6 };  // 既存リスト: 岩佐孝子, Gusi, 本橋知子, 田中元規, 佐藤知美, 前田富美恵
+        for (const [k, v] of Object.entries(TARGET_OVERRIDES)) {
+          if (kpi.targets && k in kpi.targets) kpi.targets[k] = v;
+        }
+        // _total を再計算
+        if (kpi.targets) {
+          let t = 0;
+          for (const [k, v] of Object.entries(kpi.targets)) { if (k !== "_total") t += v; }
+          kpi.targets._total = t;
+        }
+
+        // sales inflow → KPI媒体名のマッピング
+        const INFLOW_TO_MEDIA = {
+          "Youtube": "YT-Masa",
+          "Instagram": "IG-Masa",
+          "TikTok": "TT-Masa",
+          "YT-short": "YT-short",
+          "threads": "Threads",
+          "ig-miki": "IG-miki",
+          "Nina_Youtube経由": "Nina",
+          "勉強会_大ローンチ": "勉強会_大ローンチ",
+          "勉強会(Instagram)": "既存リスト",
+          "勉強会(Youtube)": "既存リスト",
+          "勉強会(TikTok)": "既存リスト",
+          "勉強会(YT-short)": "既存リスト",
+          "ig-cocona": "IG-Masa",
+          "不明": "外部",
+        };
+
+        // 媒体ごとの売上集計
+        const mediaRevenue = {};
+        const mediaAlmost = {}; // 成約予定の売上
+        const mediaPending = {};
+        const mediaExecApo = {};  // 実施済（アポ日 < 今日）
+        const mediaTotalApo = {}; // 当月アポ全件
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        if (cachedSales?.rows) {
+          for (const r of cachedSales.rows) {
+            if (!hasStatus_(r)) continue;
+            const inf = normalizeInflow_(r?.inflow);
+            const mediaName = INFLOW_TO_MEDIA[inf] || null;
+            if (!mediaName) continue;
+
+            // 当月アポ全件 + 実施済（アポ日 < 今日）
+            const apm = toMonthKey_(r?.apo_date);
+            if (apm === cm) {
+              mediaTotalApo[mediaName] = (mediaTotalApo[mediaName] || 0) + 1;
+              if (r.apo_date && r.apo_date < todayStr) {
+                mediaExecApo[mediaName] = (mediaExecApo[mediaName] || 0) + 1;
+              }
+            }
+
+            // 現状売上（着金月=当月、N列の料金を使用）
+            const pm = toMonthKey_(r?.paid_at);
+            const rev = Number(r?.price ?? 0);
+            if (pm === cm && Number.isFinite(rev) && rev > 0) {
+              mediaRevenue[mediaName] = (mediaRevenue[mediaName] || 0) + rev;
+            }
+
+            // 成約予定（まだ着金してないがほぼ確定）
+            const c = String(r?.contract ?? "").trim();
+            if (c === "成約予定") {
+              mediaAlmost[mediaName] = (mediaAlmost[mediaName] || 0) + Number(r?.price ?? 0);
+            }
+
+            // 検討額
+            if (c.includes("検討") && !c.includes("失注")) {
+              mediaPending[mediaName] = (mediaPending[mediaName] || 0) + Number(r?.price ?? 0);
+            }
+          }
+        }
+
+        // 売上データ（合計行用）
+        let salesRev = 0, salesPending = 0, salesApo = 0;
+        if (cachedSales?.rows) {
+          const sm = buildSalesMonths_(cachedSales, "__ALL__");
+          const sd = sm[cm];
+          if (sd) { salesRev = sd.revenue; salesPending = sd.pendingAmount; salesApo = sd.apo; }
+        }
+
+        // appointments.json の実績データ
+        const apoData = cachedApo?.by_media || {};
+
+        const names = Object.keys(kpi.by_media);
+        let totT = 0, totA = 0, totTargetRev = 0, totProjRev = 0, totProj = 0;
+        let totExecApo = 0, totRemainApo = 0, totRemMonth = 0;
+
+        const HIDE_MEDIA_B = new Set([]);
+        for (const name of names) {
+          if (HIDE_MEDIA_B.has(name)) continue;
+          const md = kpi.by_media[name];
+          const target = kpi.targets[name] || 0;
+          const price = prices[name] || 0;
+
+          // appointments.json から現状アポ数（今月確定アポ合計）を取得
+          const apo = apoData[name];
+          const apoTotal = apo ? apo.total : null;
+          const apoExec = apo ? apo.executed : 0;
+          const remainCount = REMAIN_COUNT_OVERRIDES[name] !== undefined
+            ? REMAIN_COUNT_OVERRIDES[name]
+            : (apo ? apo.remaining : null);
+          // 現時点実施数: appointments.json と sales.json の大きい方（キャンセル含む）
+          const salesExec = mediaExecApo[name] || 0;
+          const execCount = Math.max(apoExec, salesExec);
+
+          // kpi.json から今月の新規アポ数を取得
+          const mth = md?.months?.[cm];
+          const kpiApps = mth?.total?.apps || 0;
+
+          // 着地予想(アポ): 持ち越し + デイリー新規 × 月日数（オーバーライドがあればそれを使用）
+          const currentApo = apoTotal !== null ? apoTotal : 0;
+          const carryover = Math.max(0, currentApo - kpiApps);
+          const dailyNew = elapsed > 0 ? kpiApps / elapsed : 0;
+          const proj = PROJ_APO_OVERRIDES[name] !== undefined ? PROJ_APO_OVERRIDES[name] : Math.round(carryover + dailyNew * dim);
+
+          // 残りアポ(今月): 未実施残り + 今後増える新規 × 90%
+          const curRemain = remainCount !== null ? remainCount : 0;
+          const futureNew = Math.round(dailyNew * remainDays * 0.9);
+          const remMonth = curRemain + futureNew;
+
+          const mRev = mediaRevenue[name] || 0;
+          const mAlmost = mediaAlmost[name] || 0;
+          const mPend = mediaPending[name] || 0;
+
+          // アポ単価: オーバーライド > 実績(着金÷実施数) > デフォルト
+          const rawPrice = (execCount > 0 && mRev > 0) ? Math.round(mRev / execCount) : price;
+          const effectivePrice = APO_PRICE_OVERRIDES[name] !== undefined ? APO_PRICE_OVERRIDES[name] : rawPrice;
+
+          const targetRev = SALES_TARGETS[name] != null ? SALES_TARGETS[name] : target * price;
+          // 着地予想(売上): 現状売上(ほぼ確) + 検討額×20% + アポ単価×残りアポ(今月)（オーバーライドがあればそれを使用）
+          const projRev = PROJ_REV_OVERRIDES[name] !== undefined ? PROJ_REV_OVERRIDES[name] : Math.round((mRev + mAlmost) + mPend * 0.2 + effectivePrice * remMonth);
+
+          totT += target; totA += currentApo; totProj += proj;
+          totTargetRev += targetRev; totProjRev += projRev;
+          totExecApo += execCount; totRemMonth += remMonth;
+          if (remainCount !== null) totRemainApo += remainCount;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml_(name)}</td>
+            <td>${fmtNum(target)}</td>
+            <td style="color:var(--amber);font-weight:600">${fmtNum(proj)}</td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="apo"><span>${apoTotal !== null ? fmtNum(apoTotal) : "--"}</span></td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="exec"><span>${fmtNum(execCount)}</span></td>
+            <td>${remainCount !== null ? fmtNum(remainCount) : "--"}</td>
+            <td>${fmtNum(remMonth)}</td>
+            <td>${effectivePrice > 0 ? fmtYen(targetRev) : "--"}</td>
+            <td>${effectivePrice > 0 ? fmtYen(projRev) : "--"}</td>
+            <td>${effectivePrice > 0 ? fmtYen(effectivePrice) : "--"}</td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="revenue"><span>${fmtYen(mRev)}</span></td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="almost"><span>${fmtYen(mRev + mAlmost)}</span></td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="pending"><span>${fmtYen(mPend)}</span></td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        // 合計行（totProj は媒体別の合計、オーバーライド含む）
+        // sales-only媒体（KPIに列がないもの）を追加
+        // 現状アポ数の固定値（appointments.json にデータがない場合のオーバーライド）
+        const APO_TOTAL_OVERRIDES = { "勉強会_大ローンチ": 80 };
+        const EXTRA_MEDIA = ["勉強会_大ローンチ"];
+        for (const name of EXTRA_MEDIA) {
+          const target = TARGET_OVERRIDES[name] || 0;
+          const price = prices[name] || 0;
+          const mRev = mediaRevenue[name] || 0;
+          const mAlmost = mediaAlmost[name] || 0;
+          const mPend = mediaPending[name] || 0;
+
+          const apo = apoData[name];
+          // appointments.json にデータがなければオーバーライド値を使用
+          const apoTotal = (apo && apo.total > 0) ? apo.total : (APO_TOTAL_OVERRIDES[name] || 0);
+
+          // 現時点実施数: appointments.json → なければ sales.json の実施済
+          const execCount = (apo && apo.executed > 0) ? apo.executed : (mediaExecApo[name] || 0);
+          // 残りアポ(今日): オーバーライドがあればそれを使用、なければ appointments.json → sales.json
+          const salesTotal = mediaTotalApo[name] || 0;
+          const salesExec = mediaExecApo[name] || 0;
+          const remainCount = REMAIN_COUNT_OVERRIDES[name] !== undefined
+            ? REMAIN_COUNT_OVERRIDES[name]
+            : ((apo && apo.total > 0) ? apo.remaining : Math.max(0, salesTotal - salesExec));
+
+          // 勉強会_大ローンチは確定なので着地予想(アポ) = 現状アポ数
+          const proj = apoTotal;
+          // 残りアポ(今月): 未実施 + 今後増える分 × 90%（大ローンチは新規増加なしで固定）
+          const remMonth = remainCount;
+
+          const rawPrice = (execCount > 0 && mRev > 0) ? Math.round(mRev / execCount) : price;
+          const effectivePrice = APO_PRICE_OVERRIDES[name] !== undefined ? APO_PRICE_OVERRIDES[name] : rawPrice;
+          const targetRev = SALES_TARGETS[name] != null ? SALES_TARGETS[name] : target * price;
+          // 着地予想(売上): 現状売上(ほぼ確) + 検討額×20% + アポ単価×残りアポ(今月)
+          const projRev = Math.round((mRev + mAlmost) + mPend * 0.2 + effectivePrice * remMonth);
+          totT += target; totA += apoTotal; totProj += proj;
+          totTargetRev += targetRev; totProjRev += projRev;
+          totExecApo += execCount; totRemMonth += remMonth;
+          totRemainApo += remainCount;
+
+          const tr = document.createElement("tr");
+          tr.style.background = "var(--surface-alt)";
+          tr.innerHTML = `
+            <td>${escapeHtml_(name)}</td>
+            <td>${fmtNum(target)}</td>
+            <td style="color:var(--amber);font-weight:600">${fmtNum(proj)}</td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="apo"><span>${fmtNum(apoTotal)}</span></td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="exec"><span>${fmtNum(execCount)}</span></td>
+            <td>${fmtNum(remainCount)}</td>
+            <td>${fmtNum(remMonth)}</td>
+            <td>${effectivePrice > 0 ? fmtYen(targetRev) : "--"}</td>
+            <td>${effectivePrice > 0 ? fmtYen(projRev) : "--"}</td>
+            <td>${effectivePrice > 0 ? fmtYen(effectivePrice) : "--"}</td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="revenue"><span>${fmtYen(mRev)}</span></td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="almost"><span>${fmtYen(mRev + mAlmost)}</span></td>
+            <td class="clickable-cell" data-media="${escapeHtml_(name)}" data-view="pending"><span>${fmtYen(mPend)}</span></td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        const hasApoData = Object.keys(apoData).length > 0;
+        const totMRev = Object.values(mediaRevenue).reduce((s, v) => s + v, 0);
+        const totMAlmost = Object.values(mediaAlmost).reduce((s, v) => s + v, 0);
+        const totMPend = Object.values(mediaPending).reduce((s, v) => s + v, 0);
+
+        const ttr = document.createElement("tr");
+        ttr.style.fontWeight = "700";
+        ttr.style.borderTop = "2px solid var(--border)";
+        ttr.innerHTML = `
+          <td>合計</td>
+          <td>${fmtNum(totT)}</td>
+          <td style="color:var(--amber);font-weight:700">${fmtNum(totProj)}</td>
+          <td>${fmtNum(totA)}</td>
+          <td>${hasApoData ? fmtNum(totExecApo) : "--"}</td>
+          <td>${hasApoData ? fmtNum(totRemainApo) : fmtNum(totRemToday)}</td>
+          <td>${fmtNum(totRemMonth)}</td>
+          <td>${fmtYen(totTargetRev)}</td>
+          <td style="color:var(--amber);font-weight:700">${fmtYen(totProjRev)}</td>
+          <td>--</td>
+          <td>${fmtYen(totMRev)}</td>
+          <td>${fmtYen(totMRev + totMAlmost)}</td>
+          <td>${fmtYen(totMPend)}</td>
+        `;
+        tbody.appendChild(ttr);
+      }
+
+      // ── 外部連携 ─────────────────────────────────
+      const EXTERNAL_INFLOWS = new Set([
+        "きららさん勉強会",
+        // 今後追加: "marina勉強会", "Lisa勉強会" 等
+      ]);
+
+      const EXTERNAL_FUNNELS = {
+        "きららさん勉強会": {
+          label: "きららさん",
+          openchat: 149, participation_rate: 0.4698,
+          max_viewers: 70, final_offer: 60,
+          line_migration: 74, line_cvr: 0.4966,
+          apo_count: 17, apo_cvr: 0.2297
+        }
+      };
+
+      const EG_TARGETS = {
+        "2026-03": 2000000, "2026-04": 4000000,
+        "2026-05": 6000000, "2026-06": 8000000,
+        "2026-07": 10000000, "2026-08": 12000000
+      };
+
+      function renderExternal_(sales) {
+        const rows = Array.isArray(sales?.rows) ? sales.rows : [];
+        const extRows = rows.filter(r => EXTERNAL_INFLOWS.has(normalizeInflow_(r?.inflow)));
+
+        // A. サマリー計算
+        const total = extRows.length;
+        const withApo = extRows.filter(r => String(r?.apo_date ?? "").trim() !== "");
+        const interviewed = extRows.filter(r => String(r?.status ?? "").trim() === "面談済");
+        const contracted = extRows.filter(r => {
+          const c = String(r?.contract ?? "").trim();
+          return c !== "" && !c.includes("損切") && !c.includes("失注");
+        });
+        const totalRevenue = extRows.reduce((sum, r) => sum + (Number(r?.price) || 0), 0);
+        const apoRate = total > 0 ? withApo.length / total : 0;
+        const contractRate = interviewed.length > 0 ? contracted.length / interviewed.length : 0;
+
+        el.extTotalEntries.textContent = fmtNum(total);
+        el.extApoRate.textContent = (apoRate * 100).toFixed(1) + "%";
+        el.extInterviewed.textContent = fmtNum(interviewed.length);
+        el.extContracts.textContent = fmtNum(contracted.length);
+        el.extContractRate.textContent = interviewed.length > 0 ? (contractRate * 100).toFixed(1) + "%" : "--";
+        el.extTotalRevenue.textContent = fmtYen(totalRevenue);
+        el.externalBadge.textContent = total + " 件";
+        el.tabExternalCount.textContent = total;
+
+        // B. ファネル
+        el.extFunnelTbody.innerHTML = "";
+        for (const [inflowKey, f] of Object.entries(EXTERNAL_FUNNELS)) {
+          const infRows = extRows.filter(r => normalizeInflow_(r?.inflow) === inflowKey);
+          const apoCount = f.apo_count || infRows.filter(r => String(r?.apo_date ?? "").trim() !== "").length;
+          const cCount = infRows.filter(r => {
+            const c = String(r?.contract ?? "").trim();
+            return c !== "" && !c.includes("損切") && !c.includes("失注");
+          }).length;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="font-weight:500">${escapeHtml_(f.label)}</td>
+            <td>${fmtNum(f.openchat)}</td>
+            <td>${(f.participation_rate * 100).toFixed(1)}%</td>
+            <td>${fmtNum(f.max_viewers)}</td>
+            <td>${fmtNum(f.final_offer)}</td>
+            <td>${fmtNum(f.line_migration)}</td>
+            <td>${(f.line_cvr * 100).toFixed(1)}%</td>
+            <td>${fmtNum(apoCount)}</td>
+            <td>${(f.apo_cvr * 100).toFixed(1)}%</td>
+            <td>${fmtNum(cCount)}</td>
+          `;
+          el.extFunnelTbody.appendChild(tr);
+        }
+
+        // C. セールス進捗テーブル
+        el.extSalesTbody.innerHTML = "";
+        const sorted = [...extRows].sort((a, b) => {
+          const ad = a.apo_date || "9999";
+          const bd = b.apo_date || "9999";
+          return ad < bd ? -1 : ad > bd ? 1 : 0;
+        });
+        for (const r of sorted) {
+          const tr = document.createElement("tr");
+          const contract = String(r?.contract ?? "").trim();
+          const status = String(r?.status ?? "").trim();
+          if (status === "面談済" && contract !== "" && !contract.includes("損切") && !contract.includes("失注")) {
+            tr.style.background = "rgba(16,185,129,0.06)";
+          } else if (status === "面談済" && (contract.includes("損切") || contract.includes("失注"))) {
+            tr.style.background = "var(--red-soft)";
+          } else if (String(r?.apo_date ?? "").trim() === "") {
+            tr.style.color = "var(--ink-muted)";
+          }
+          tr.innerHTML = `
+            <td style="font-family:var(--sans);font-weight:500">${escapeHtml_(r?.name || "--")}</td>
+            <td>${escapeHtml_(r?.owner || "--")}</td>
+            <td>${statusTag_(r?.contract, r?.status)}</td>
+            <td>${escapeHtml_(r?.apo_date || "--")}</td>
+            <td>${escapeHtml_(r?.apo_time || "--")}</td>
+            <td>${escapeHtml_(contract || "--")}</td>
+            <td>${fmtYen(r?.price)}</td>
+          `;
+          el.extSalesTbody.appendChild(tr);
+        }
+
+        // D. 売上目標 vs 実績
+        el.extTargetTbody.innerHTML = "";
+        const revenueByMonth = {};
+        for (const r of extRows) {
+          const c = String(r?.contract ?? "").trim();
+          if (c === "" || c.includes("損切") || c.includes("失注")) continue;
+          const mk = toMonthKey_(r?.paid_at) || toMonthKey_(r?.apo_date);
+          if (!mk) continue;
+          revenueByMonth[mk] = (revenueByMonth[mk] || 0) + (Number(r?.price) || 0);
+        }
+        const targetKeys = Object.keys(EG_TARGETS).sort();
+        for (const mk of targetKeys) {
+          const target = EG_TARGETS[mk];
+          const actual = revenueByMonth[mk] || 0;
+          const rate = target > 0 ? actual / target : 0;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${mk}</td>
+            <td>${fmtYen(target)}</td>
+            <td>${fmtYen(actual)}</td>
+            <td style="font-weight:600;color:${rate >= 1 ? 'var(--green)' : rate >= 0.5 ? 'var(--amber)' : 'var(--red)'}">${(rate * 100).toFixed(1)}%</td>
+          `;
+          el.extTargetTbody.appendChild(tr);
+        }
+
+        el.externalError.style.display = "none";
+      }
+
+      // hero
+      async function loadJson(url) {
+        const u = new URL(url, location.href);
+        u.searchParams.set("t", String(Date.now()));
+        const res = await fetch(u.toString(), { cache: "no-store", headers: { "cache-control": "no-cache" } });
+        if (!res.ok) throw new Error(`fetch失敗: HTTP ${res.status}`);
+        return await res.json();
+      }
+
+      async function loadAll() {
+        el.subtitle.textContent = "読み込み中…";
+        try {
+          const [kR, iR, sR, aR, cR, a2R, tR] = await Promise.allSettled([loadJson(KPI_URL), loadJson(INSIGHT_URL), loadJson(SALES_URL), loadJson(APO_URL), loadJson(CONTENT_URL), loadJson(ANALYSIS_URL), loadJson(THREADS_URL)]);
+          if (cR.status === "fulfilled") cachedContent = cR.value;
+          if (a2R.status === "fulfilled") cachedAnalysis = a2R.value;
+
+          // ① まず sales と appointments をセット（renderMediaBreakdown_ で使うため）
+          if (sR.status === "fulfilled") {
+            cachedSales = sR.value;
+          }
+          if (aR.status === "fulfilled") {
+            cachedApo = aR.value;
+          }
+
+          // ② KPI（必須）
+          if (kR.status === "fulfilled") {
+            renderFromKpi(kR.value);
+          } else {
+            throw kR.reason;
+          }
+
+          // ③ Insight（任意）
+          try {
+            if (iR.status === "fulfilled") {
+              renderInsightMonthSummary_(iR.value);
+              const src = iR.value?.source
+                ? ` ｜ Insight: ${iR.value.source.spreadsheet_id || "--"} / ${iR.value.source.sheet_name || "--"}`
+                : "";
+              el.subtitle.textContent += src;
+            } else {
+              showInsightError(`insight.json を読み込めませんでした。\n理由: ${String(iR.reason?.message || iR.reason)}`);
+              insightMonthsCache = null;
+            }
+          } catch (ie) {
+            console.error("Insight render error:", ie);
+            showInsightError(`insight描画エラー: ${ie.message}`);
+          }
+
+          // ④ Sales 描画（任意）
+          try {
+            if (sR.status === "fulfilled") {
+              renderSalesInflowSelect_(cachedSales);
+              renderSalesMonthSummary_(cachedSales);
+              const src = sR.value?.source
+                ? ` ｜ Sales: ${sR.value.source.spreadsheet_id || "--"} / ${sR.value.source.sheet_name || "--"}`
+                : "";
+              el.subtitle.textContent += src;
+            } else {
+              showSalesError(`sales.json を読み込めませんでした。\n理由: ${String(sR.reason?.message || sR.reason)}`);
+            }
+          } catch (se) {
+            console.error("Sales render error:", se);
+            showSalesError(`sales描画エラー: ${se.message}`);
+          }
+
+          // ⑤ 媒体テーブル再描画（sales + appointments セット済み）
+          try {
+            if (cachedKpi) renderMediaBreakdown_(cachedKpi);
+          } catch (me) {
+            console.error("MediaBreakdown render error:", me);
+          }
+
+          // ⑤-b 外部連携（sales データ利用）
+          try {
+            if (cachedSales) renderExternal_(cachedSales);
+          } catch (ee) {
+            console.error("External render error:", ee);
+            el.externalError.textContent = "外部連携描画エラー: " + (ee?.message || ee);
+            el.externalError.style.display = "block";
+          }
+
+          // ⑥ Threads（任意）
+          try {
+            if (tR.status === "fulfilled" && tR.value) {
+              renderThreads_(tR.value);
+            } else {
+              el.threadsError.style.display = "none";
+              if (tR.status === "rejected") {
+                el.threadsError.textContent = "threads.json を読み込めませんでした";
+                el.threadsError.style.display = "block";
+              }
+            }
+          } catch (te) {
+            console.error("Threads render error:", te);
+            el.threadsError.textContent = "Threads描画エラー: " + (te?.message || te);
+            el.threadsError.style.display = "block";
+          }
+
+        } catch (e) {
+          showError(`kpi.json を読み込めませんでした。\n理由: ${String(e?.message || e)}\n\n対処: http(s) 経由で開く、または「KPI JSON選択」で手動読み込み`);
+          el.subtitle.textContent = "読み込み失敗";
+        }
+      }
+
+      // events
+      el.reloadBtn.onclick = () => loadAll();
+      function onInflowChange(v) {
+        selectedSalesInflow = v || "__ALL__";
+        el.salesInflowSelect.value = selectedSalesInflow;
+        el.salesInflowSelect2.value = selectedSalesInflow;
+        if (cachedSales) renderSalesMonthSummary_(cachedSales);
+      }
+      el.salesInflowSelect.onchange = () => onInflowChange(el.salesInflowSelect.value);
+      el.salesInflowSelect2.onchange = () => onInflowChange(el.salesInflowSelect2.value);
+
+      el.fileBtn.onclick = () => el.filePicker.click();
+      el.filePicker.onchange = async (ev) => {
+        const f = ev.target.files?.[0];
+        if (!f) return;
+        try {
+          const kpi = JSON.parse(await f.text());
+          renderFromKpi(kpi);
+          clearError();
+        } catch (e) {
+          showError(`JSON読み込み失敗: ${String(e?.message || e)}`);
+        }
+      };
+
+      loadAll();
+    </script>
+  </body>
+</html>
+
