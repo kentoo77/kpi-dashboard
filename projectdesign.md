@@ -101,3 +101,66 @@ DASHBOARD.html → fetch("./data/xxx.json")
 ## URL
 - **Vercel**: https://kpi-dashboard-mu-coral.vercel.app
 - **GitHub**: https://github.com/Masa-English/kpi-dashboard
+
+---
+
+## GAS Drive→GitHub 移行ワークフロー
+
+GASファイルのDrive出力をGitHub push に切り替える際の標準手順。
+
+### 1. Drive出力コードを特定する
+
+各GASファイルで以下のパターンを探す:
+```javascript
+// パターンA: ensureXxxOutputFile_() を使っている
+var file = ensureXxxOutputFile_();
+file.setContent(JSON.stringify(out, null, 2));
+
+// パターンB: DriveApp.getFileById / getFolderById を直接使っている
+var folder = DriveApp.getFolderById("...");
+folder.createFile("xxx.json", jsonStr, MimeType.PLAIN_TEXT);
+```
+
+### 2. 不要な変数・関数を削除する
+
+| 削除対象 | 例 |
+|---------|---|
+| Drive出力先の変数 | `XXX_OUTPUT_FOLDER_ID`, `XXX_OUTPUT_FILE_NAME`, `XXX_PROP_FILE_ID` |
+| ファイル確保関数 | `ensureXxxOutputFile_()` |
+
+### 3. GitHub push に置き換える
+
+```javascript
+// 旧: Drive出力
+var file = ensureXxxOutputFile_();
+file.setContent(JSON.stringify(out, null, 2));
+Logger.log("xxx.json 更新完了");
+
+// 新: GitHub push（この3行に置き換え）
+var jsonStr = JSON.stringify(out, null, 2);
+pushJsonToGitHub("xxx.json", jsonStr);
+Logger.log("xxx.json GitHub push 完了");
+```
+
+### 4. 動作確認
+
+1. GASエディタで対象の export 関数を手動実行
+2. 実行ログに `GitHub push OK: data/xxx.json` が出ることを確認
+3. GitHub の `data/` に JSON がコミットされていることを確認
+4. 1〜2分待って Vercel のダッシュボードにデータが反映されることを確認
+
+### 5. チェックリスト
+
+| GASファイル | Drive出力削除 | GitHub push 追加 | 動作確認 |
+|------------|:---:|:---:|:---:|
+| kpi.gs | - | - | - |
+| sales.gs | N/A（元からなし） | done | done |
+| appointments.gs | done | done | done |
+| threads.gs | - | - | - |
+| ig-insight.gs | - | - | - |
+| analysis-form.gs | - | - | - |
+
+### 注意事項
+- `pushJsonToGitHub()` は `gas/github-sync.gs` で定義。GASエディタに追加済みであること
+- `GITHUB_TOKEN` がスクリプトプロパティに設定済みであること
+- `jsonStr` は各関数内の実際の変数名に合わせること（`json`, `jsonString` 等の場合あり）
