@@ -9,7 +9,7 @@
  *   pushJsonToGitHub("kpi.json", jsonString);
  */
 
-var GITHUB_OWNER = "Masa-English";
+var GITHUB_OWNER = "kentoo77";
 var GITHUB_REPO  = "kpi-dashboard";
 var GITHUB_BRANCH = "main";
 
