@@ -1,0 +1,191 @@
+{
+  "updated_at": "2026-03-02T11:02:26.322Z",
+  "month": "2026-03",
+  "today": "2026-03-02",
+  "by_media": {
+    "IG-Masa": {
+      "total": 11,
+      "executed": 3,
+      "remaining": 8,
+      "details": [
+        {
+          "name": "前山 真希/マエヤマ マキ",
+          "date": "2026-03-01",
+          "status": "実施済",
+          "applied_at": "2026-02-22"
+        },
+        {
+          "name": "小川 奈津子/オガワ ナツコ",
+          "date": "2026-03-01",
+          "status": "実施済",
+          "applied_at": "2026-02-17"
+        },
+        {
+          "name": "北井 智佳子/キタイ チカコ",
+          "date": "2026-03-01",
+          "status": "実施済",
+          "applied_at": "2026-02-23"
+        },
+        {
+          "name": "重信 夏実/シゲノブ ナツミ",
+          "date": "2026-03-02",
+          "status": "未実施",
+          "applied_at": "2026-02-20"
+        },
+        {
+          "name": "今栄 友紀/イマエ ユキ",
+          "date": "2026-03-03",
+          "status": "未実施",
+          "applied_at": "2026-02-22"
+        },
+        {
+          "name": "山口 美咲/ヤマグチ ミサキ",
+          "date": "2026-03-03",
+          "status": "未実施",
+          "applied_at": "2026-02-14"
+        },
+        {
+          "name": "林 妙賢/ハヤシ タエカ",
+          "date": "2026-03-04",
+          "status": "未実施",
+          "applied_at": "2026-03-02"
+        },
+        {
+          "name": "柴田 理咲/シバタ リサ",
+          "date": "2026-03-05",
+          "status": "未実施",
+          "applied_at": "2026-02-27"
+        },
+        {
+          "name": "関 なな子/セキ ナナコ",
+          "date": "2026-03-06",
+          "status": "未実施",
+          "applied_at": "2026-02-27"
+        },
+        {
+          "name": "宇野 麻衣子/ウノ マイコ",
+          "date": "2026-03-07",
+          "status": "未実施",
+          "applied_at": "2026-02-28"
+        },
+        {
+          "name": "山口 彩乃/ヤマグチ アヤノ",
+          "date": "2026-03-14",
+          "status": "未実施",
+          "applied_at": "2026-02-20"
+        }
+      ]
+    },
+    "YT-Masa": {
+      "total": 7,
+      "executed": 0,
+      "remaining": 7,
+      "details": [
+        {
+          "name": "田中 元彦/タナカ モトヒコ",
+          "date": "2026-03-02",
+          "status": "未実施",
+          "applied_at": "2026-02-27"
+        },
+        {
+          "name": "北川 千恵子/キタガワ チエコ",
+          "date": "2026-03-03",
+          "status": "未実施",
+          "applied_at": "2026-03-01"
+        },
+        {
+          "name": "熊谷 玄太/クマガイ ゲンタ",
+          "date": "2026-03-03",
+          "status": "未実施",
+          "applied_at": "2026-02-23"
+        },
+        {
+          "name": "土屋 一浩/ツチヤ カズヒロ",
+          "date": "2026-03-03",
+          "status": "未実施",
+          "applied_at": "2026-02-22"
+        },
+        {
+          "name": "松本 桂子/マツモト ケイコ",
+          "date": "2026-03-05",
+          "status": "未実施",
+          "applied_at": "2026-02-28"
+        },
+        {
+          "name": "菊池 潤太/キクチ ジュンタ",
+          "date": "2026-03-08",
+          "status": "未実施",
+          "applied_at": "2026-02-19"
+        },
+        {
+          "name": "��瀬 範子/タカセ ノリコ",
+          "date": "2026-03-18",
+          "status": "未実施",
+          "applied_at": "2026-02-15"
+        }
+      ]
+    },
+    "TT-Masa": {
+      "total": 0,
+      "executed": 0,
+      "remaining": 0,
+      "details": []
+    },
+    "YT-short": {
+      "total": 1,
+      "executed": 0,
+      "remaining": 1,
+      "details": [
+        {
+          "name": "宮地 彰子/ミヤチ アキコ",
+          "date": "2026-03-06",
+          "status": "未実施",
+          "applied_at": "2026-02-27"
+        }
+      ]
+    },
+    "Threads": {
+      "total": 0,
+      "executed": 0,
+      "remaining": 0,
+      "details": []
+    },
+    "既存リスト": {
+      "total": 0,
+      "executed": 0,
+      "remaining": 0,
+      "details": []
+    },
+    "勉強会_大ローンチ": {
+      "total": 0,
+      "executed": 0,
+      "remaining": 0,
+      "details": []
+    },
+    "Nina": {
+      "total": 3,
+      "executed": 0,
+      "remaining": 3,
+      "details": [
+        {
+          "name": ".",
+          "date": "2026-03-02",
+          "status": "未実施",
+          "applied_at": "2026-02-27"
+        },
+        {
+          "name": "Hiroki Takase",
+          "date": "2026-03-04",
+          "status": "未実施",
+          "applied_at": "2026-02-07"
+        },
+        {
+          "name": "菅森 杏",
+          "date": "2026-03-05",
+          "status": "未実施",
+          "applied_at": "2026-02-02"
+        }
+      ]
+    }
+  }
+}
